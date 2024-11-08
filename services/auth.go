@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"kopelko-dating-app-backend/dto"
 	"kopelko-dating-app-backend/models"
 	"kopelko-dating-app-backend/repositories"
@@ -20,12 +21,12 @@ func NewAuthService(userRepo *repositories.UserRepository, profileRepo *reposito
 func (s *AuthService) RegisterUser(req *dto.RegisterRequest) (*models.User, error) {
 	hashedPwd, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not hash password: %w", err)
 	}
 
 	tx := s.userRepo.DB.Begin()
 	if tx.Error != nil {
-		return nil, tx.Error
+		return nil, fmt.Errorf("could not start transaction: %w", tx.Error)
 	}
 
 	user := &models.User{
@@ -35,7 +36,7 @@ func (s *AuthService) RegisterUser(req *dto.RegisterRequest) (*models.User, erro
 
 	if err := s.userRepo.CreateUserTx(tx, user); err != nil {
 		tx.Rollback()
-		return nil, err
+		return nil, fmt.Errorf("could not create user: %w", err)
 	}
 
 	profile := &models.Profile{
@@ -49,12 +50,12 @@ func (s *AuthService) RegisterUser(req *dto.RegisterRequest) (*models.User, erro
 
 	if err := s.profileRepo.CreateProfileTx(tx, profile); err != nil {
 		tx.Rollback()
-		return nil, err
+		return nil, fmt.Errorf("could not create profile: %w", err)
 	}
 
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
-		return nil, err
+		return nil, fmt.Errorf("could not commit transaction: %w", err)
 	}
 
 	return user, nil
