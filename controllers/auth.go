@@ -24,6 +24,7 @@ func (c *AuthController) RegisterUser(ctx echo.Context) error {
 	}
 
 	if err := ctx.Validate(&req); err != nil {
+		ctx.Logger().Error(err)
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed"})
 	}
 

@@ -1,17 +1,30 @@
 package routes
 
 import (
-	"github.com/labstack/echo"
-	"gorm.io/gorm"
+	"kopelko-dating-app-backend/config"
+
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
-func SetupRoutes(e *echo.Echo, db *gorm.DB) {
+func SetupRoutes() *echo.Echo {
+	// Initialize config
+	cfg := config.New()
+
+	// Initialize Echo
+	e := echo.New()
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
+	e.Validator = config.NewValidator()
+
 	api := e.Group("/api")
-	api.POST("/register", controllers.SignUp)
+	api.POST("/register", cfg.Controllers.Auth.RegisterUser)
 	// api.POST("/login", controllers.Login)
 
 	// user := api.Group("/user")
 	// user.GET("/profile", controllers.ViewProfile)
 	// user.POST("/swipe", controllers.Swipe)
 	// user.POST("/subscribe", controllers.Subscribe)
+
+	return e
 }

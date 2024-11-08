@@ -1,1 +1,58 @@
 package config
+
+import (
+	"kopelko-dating-app-backend/controllers"
+	"kopelko-dating-app-backend/repositories"
+	"kopelko-dating-app-backend/services"
+	"kopelko-dating-app-backend/utils"
+	"log"
+
+	"github.com/joho/godotenv"
+	"gorm.io/gorm"
+)
+
+type Config struct {
+	DB *gorm.DB
+	Controllers
+}
+
+type Controllers struct {
+	Auth *controllers.AuthController
+}
+
+func New() *Config {
+	var c = new(Config)
+	c.initializeDB()
+	c.initializeControllers()
+	return c
+}
+
+// Initialize database connection
+func (c *Config) initializeDB() {
+	loadEnv()
+	db, err := utils.InitDB()
+	if err != nil {
+		log.Fatalf("could not set up database: %v", err)
+	}
+	c.DB = db
+}
+
+// Initialize controllers
+func (c *Config) initializeControllers() {
+	// Profile component
+	pfr := repositories.NewProfileRepository(c.DB)
+
+	// User component
+	usr := repositories.NewUserRepository(c.DB)
+
+	// Auth component
+	aus := services.NewAuthService(usr, pfr)
+	c.Controllers.Auth = controllers.NewAuthController(aus)
+}
+
+func loadEnv() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+}

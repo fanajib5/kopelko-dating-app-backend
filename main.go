@@ -1,14 +1,8 @@
 package main
 
-import (
-	"kopelko-dating-app-backend/utils"
-	"log"
-)
+import "kopelko-dating-app-backend/routes"
 
 func main() {
-	// Initialize database connection
-	db, err := utils.InitDB()
-	if err != nil {
-		log.Fatalf("could not set up database: %v", err)
-	}
+	e := routes.SetupRoutes()
+	e.Logger.Fatal(e.Start(":8080"))
 }
