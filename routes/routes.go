@@ -2,6 +2,7 @@ package routes
 
 import (
 	"kopelko-dating-app-backend/config"
+	"kopelko-dating-app-backend/utils"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -22,8 +23,8 @@ func SetupRoutes() *echo.Echo {
 	api.POST("/register", cfg.Controllers.Auth.RegisterUser)
 	api.POST("/login", cfg.Controllers.Auth.LoginUser)
 
-	// user := api.Group("/user")
-	// user.GET("/profile", controllers.ViewProfile)
+	user := api.Group("/users", utils.AuthMiddleware)
+	user.GET("/profiles/:id", cfg.Profile.ViewProfile)
 	// user.POST("/swipe", controllers.Swipe)
 	// user.POST("/subscribe", controllers.Subscribe)
 

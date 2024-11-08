@@ -19,7 +19,8 @@ type Config struct {
 }
 
 type Controllers struct {
-	Auth *controllers.AuthController
+	Auth    *controllers.AuthController
+	Profile *controllers.ProfileController
 }
 
 func New() *Config {
@@ -49,6 +50,8 @@ func (c *Config) LoadJWTKey() {
 func (c *Config) initializeControllers() {
 	// Profile component
 	pfr := repositories.NewProfileRepository(c.DB)
+	pfs := services.NewProfileService(pfr)
+	c.Controllers.Profile = controllers.NewProfileController(pfs)
 
 	// User component
 	usr := repositories.NewUserRepository(c.DB)
