@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"net/http"
-
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
@@ -35,7 +33,7 @@ func getErrorMessage(fieldError validator.FieldError) string {
 }
 
 // ValidationError handles validation errors
-func ValidationError(ctx echo.Context, err error) error {
+func ValidationError(ctx echo.Context, err error) map[string]string {
 
 	// Get detailed validation error messages
 	validationErrors := err.(validator.ValidationErrors)
@@ -45,8 +43,5 @@ func ValidationError(ctx echo.Context, err error) error {
 		errors[fieldError.Field()] = getErrorMessage(fieldError)
 	}
 
-	return ctx.JSON(http.StatusBadRequest, map[string]any{
-		"error":   "Validation failed",
-		"details": errors,
-	})
+	return errors
 }

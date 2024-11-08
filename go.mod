@@ -5,7 +5,6 @@ go 1.23.3
 require (
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/labstack/echo/v4 v4.12.0
-	github.com/rs/zerolog v1.33.0
 	gorm.io/driver/postgres v1.5.9
 	gorm.io/gorm v1.25.12
 )

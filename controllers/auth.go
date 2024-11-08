@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"kopelko-dating-app-backend/dto"
@@ -21,23 +22,26 @@ func NewAuthController(userService services.AuthService) *AuthController {
 func (c *AuthController) RegisterUser(ctx echo.Context) error {
 	var req dto.RegisterRequest
 	if err := ctx.Bind(&req); err != nil {
-		ctx.Logger().Error(err)
-		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"})
+		ctx.Logger().Errorf("Could not bind request: %w", err)
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 
 	if err := ctx.Validate(&req); err != nil {
-		ctx.Logger().Error(err)
-		return utils.ValidationError(ctx, err)
+		ctx.Logger().Errorf("Validation failed: %w", err)
+		errors := utils.ValidationError(ctx, err)
+		return ctx.JSON(http.StatusBadRequest, map[string]any{
+			"error":   "Validation failed",
+			"details": errors,
+		})
 	}
 
 	user, err := c.userService.RegisterUser(&req)
 	if err != nil {
-		ctx.Logger().Error(err)
+		ctx.Logger().Errorf("Registration failed: %w", err)
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
-	ctx.Logger().Info("User registered successfully")
-
+	ctx.Logger().Info(fmt.Sprintf("User registered successfully: %s", user.MaskEmail()))
 	return ctx.JSON(http.StatusCreated, map[string]any{
 		"message": "User registered successfully",
 		"user": map[string]any{
@@ -50,18 +54,22 @@ func (c *AuthController) RegisterUser(ctx echo.Context) error {
 func (c *AuthController) LoginUser(ctx echo.Context) error {
 	var req dto.LoginRequest
 	if err := ctx.Bind(&req); err != nil {
-		ctx.Logger().Error(err)
-		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"})
+		ctx.Logger().Errorf("Could not bind request: %w", err)
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 
 	if err := ctx.Validate(&req); err != nil {
-		ctx.Logger().Error(err)
-		return utils.ValidationError(ctx, err)
+		ctx.Logger().Errorf("Validation failed: %w", err)
+		errors := utils.ValidationError(ctx, err)
+		return ctx.JSON(http.StatusBadRequest, map[string]any{
+			"error":   "Validation failed",
+			"details": errors,
+		})
 	}
 
 	user, err := c.userService.LoginUser(&req)
 	if err != nil {
-		ctx.Logger().Error(err)
+		ctx.Logger().Errorf("Login failed: %w", err)
 		return ctx.JSON(http.StatusUnauthorized, map[string]any{
 			"error":   "Validation failed",
 			"details": "Invalid email or password",
@@ -70,7 +78,6 @@ func (c *AuthController) LoginUser(ctx echo.Context) error {
 
 	ctx.Set("token", user.Token)
 	ctx.Logger().Info("User logged in successfully")
-
 	return ctx.JSON(http.StatusOK, map[string]any{
 		"message": "User logged in successfully",
 		"user": map[string]any{
