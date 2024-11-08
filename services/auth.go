@@ -9,16 +9,20 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type AuthService struct {
+type AuthService interface {
+	RegisterUser(req *dto.RegisterRequest) (*models.User, error)
+}
+
+type authService struct {
 	userRepo    repositories.UserRepository
 	profileRepo repositories.ProfileRepository
 }
 
-func NewAuthService(userRepo repositories.UserRepository, profileRepo repositories.ProfileRepository) *AuthService {
-	return &AuthService{userRepo: userRepo, profileRepo: profileRepo}
+func NewAuthService(userRepo repositories.UserRepository, profileRepo repositories.ProfileRepository) *authService {
+	return &authService{userRepo: userRepo, profileRepo: profileRepo}
 }
 
-func (s *AuthService) RegisterUser(req *dto.RegisterRequest) (*models.User, error) {
+func (s *authService) RegisterUser(req *dto.RegisterRequest) (*models.User, error) {
 	hashedPwd, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, fmt.Errorf("could not hash password: %w", err)
