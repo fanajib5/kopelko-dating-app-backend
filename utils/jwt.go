@@ -5,22 +5,26 @@ import (
 	"os"
 	"time"
 
+	model "kopelko-dating-app-backend/models"
+
 	"github.com/golang-jwt/jwt/v5"
 )
 
 var jwtKey []byte
 
 type Claims struct {
-	UserID uint
-	Email  string
+	UserID    uint
+	Email     string
+	IsPremium bool
 	jwt.RegisteredClaims
 }
 
-func GenerateJWT(userID uint, email string) (string, error) {
+func GenerateJWT(user model.User) (string, error) {
 	expirationTime := time.Now().Add(15 * time.Minute)
 	claims := &Claims{
-		UserID: userID,
-		Email:  email,
+		UserID:    user.ID,
+		Email:     user.Email,
+		IsPremium: user.Profile.IsPremium,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    "kopelko-dating-app-backend",
 			ExpiresAt: jwt.NewNumericDate(expirationTime),

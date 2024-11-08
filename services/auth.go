@@ -88,7 +88,7 @@ func (s *authService) LoginUser(req *dto.LoginRequest) (*models.User, error) {
 }
 
 func (s *authService) generateToken(user *models.User) (string, error) {
-	token, err := utils.GenerateJWT(user.ID, user.Email)
+	token, err := utils.GenerateJWT(user)
 	if err != nil {
 		return "", fmt.Errorf("could not generate token: %w", err)
 	}
