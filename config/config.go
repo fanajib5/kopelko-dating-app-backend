@@ -21,6 +21,7 @@ type Config struct {
 type Controllers struct {
 	Auth    *controllers.AuthController
 	Profile *controllers.ProfileController
+	Swipe   *controllers.SwipeController
 }
 
 func New() *Config {
@@ -59,6 +60,11 @@ func (c *Config) initializeControllers() {
 	// Auth component
 	aus := services.NewAuthService(usr, pfr)
 	c.Controllers.Auth = controllers.NewAuthController(aus)
+
+	// Swipe component
+	swr := repositories.NewSwipeRepository(c.DB)
+	sws := services.NewSwipeService(swr, 10)
+	c.Controllers.Swipe = controllers.NewSwipeController(sws)
 }
 
 func loadEnv() {
