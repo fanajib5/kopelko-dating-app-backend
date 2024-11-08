@@ -6,18 +6,18 @@ import (
 	"gorm.io/gorm"
 )
 
-type ProfileRepository struct {
+type ProfileRepository interface {
+	CreateProfileTx(tx *gorm.DB, profile *models.Profile) error
+}
+
+type profileRepo struct {
 	DB *gorm.DB
 }
 
-func NewProfileRepository(db *gorm.DB) *ProfileRepository {
-	return &ProfileRepository{DB: db}
+func NewProfileRepository(db *gorm.DB) *profileRepo {
+	return &profileRepo{DB: db}
 }
 
-func (r *ProfileRepository) CreateProfile(profile *models.Profile) error {
-	return r.DB.Create(profile).Error
-}
-
-func (r *ProfileRepository) CreateProfileTx(tx *gorm.DB, profile *models.Profile) error {
+func (r *profileRepo) CreateProfileTx(tx *gorm.DB, profile *models.Profile) error {
 	return tx.Create(profile).Error
 }

@@ -10,11 +10,11 @@ import (
 )
 
 type AuthService struct {
-	userRepo    *repositories.UserRepository
-	profileRepo *repositories.ProfileRepository
+	userRepo    repositories.UserRepository
+	profileRepo repositories.ProfileRepository
 }
 
-func NewAuthService(userRepo *repositories.UserRepository, profileRepo *repositories.ProfileRepository) *AuthService {
+func NewAuthService(userRepo repositories.UserRepository, profileRepo repositories.ProfileRepository) *AuthService {
 	return &AuthService{userRepo: userRepo, profileRepo: profileRepo}
 }
 
@@ -24,7 +24,7 @@ func (s *AuthService) RegisterUser(req *dto.RegisterRequest) (*models.User, erro
 		return nil, fmt.Errorf("could not hash password: %w", err)
 	}
 
-	tx := s.userRepo.DB.Begin()
+	tx := s.userRepo.BeginTx()
 	if tx.Error != nil {
 		return nil, fmt.Errorf("could not start transaction: %w", tx.Error)
 	}

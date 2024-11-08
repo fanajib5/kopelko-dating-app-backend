@@ -21,15 +21,17 @@ type Controllers struct {
 }
 
 func New() *Config {
+	loadEnv()
+
 	var c = new(Config)
 	c.initializeDB()
 	c.initializeControllers()
+
 	return c
 }
 
 // Initialize database connection
 func (c *Config) initializeDB() {
-	loadEnv()
 	db, err := utils.InitDB()
 	if err != nil {
 		log.Fatalf("could not set up database: %v", err)

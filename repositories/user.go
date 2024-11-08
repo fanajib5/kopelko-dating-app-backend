@@ -6,18 +6,23 @@ import (
 	"gorm.io/gorm"
 )
 
-type UserRepository struct {
-	DB *gorm.DB
+type UserRepository interface {
+	BeginTx() *gorm.DB
+	CreateUserTx(tx *gorm.DB, user *models.User) error
 }
 
-func NewUserRepository(db *gorm.DB) *UserRepository {
-	return &UserRepository{DB: db}
+type userRepo struct {
+	db *gorm.DB
 }
 
-func (r *UserRepository) CreateUser(user *models.User) error {
-	return r.DB.Create(user).Error
+func NewUserRepository(db *gorm.DB) *userRepo {
+	return &userRepo{db: db}
 }
 
-func (r *UserRepository) CreateUserTx(tx *gorm.DB, user *models.User) error {
+func (r *userRepo) BeginTx() *gorm.DB {
+	return r.db.Begin()
+}
+
+func (r *userRepo) CreateUserTx(tx *gorm.DB, user *models.User) error {
 	return tx.Create(user).Error
 }
