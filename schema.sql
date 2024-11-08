@@ -3,23 +3,25 @@ CREATE TABLE users (
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     is_verified BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP
 );
 
 CREATE TABLE profiles (
     id SERIAL PRIMARY KEY,
     user_id INT UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL,
-    age INT CHECK (age >= 18),  -- Assuming the app has an age limit
+    age INT CHECK (age >= 18 AND age > 0),  -- Assuming the app has an age limit
     bio TEXT,
     gender VARCHAR(20),
     location VARCHAR(100),
     interests TEXT,  -- Comma-separated list of interests
     photos TEXT[],  -- Array of photo URLs
     is_premium BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP
 );
 
 CREATE TABLE swipes (
@@ -51,7 +53,7 @@ CREATE TABLE subscriptions (
 CREATE TABLE payments (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    amount DECIMAL(10, 2) NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL CHECK (amount > 0),
     currency VARCHAR(10) DEFAULT 'USD',
     payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     payment_status VARCHAR(50),  -- e.g., "completed", "pending"
@@ -65,4 +67,3 @@ CREATE INDEX idx_match_user1_id ON matches(user1_id);
 CREATE INDEX idx_match_user2_id ON matches(user2_id);
 CREATE INDEX idx_subscription_user_id ON subscriptions(user_id);
 CREATE INDEX idx_payment_user_id ON payments(user_id);
-
