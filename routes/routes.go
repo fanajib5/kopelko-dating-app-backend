@@ -13,6 +13,8 @@ func SetupRoutes() *echo.Echo {
 
 	// Initialize Echo
 	e := echo.New()
+	e.Use(middleware.CORS())
+	e.Use(middleware.CSRF())
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Validator = config.NewValidator()
