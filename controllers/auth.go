@@ -20,6 +20,7 @@ func NewAuthController(userService *services.AuthService) *AuthController {
 func (c *AuthController) RegisterUser(ctx echo.Context) error {
 	var req dto.RegisterRequest
 	if err := ctx.Bind(&req); err != nil {
+		ctx.Logger().Error(err)
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"})
 	}
 
@@ -30,6 +31,7 @@ func (c *AuthController) RegisterUser(ctx echo.Context) error {
 
 	user, err := c.userService.RegisterUser(&req)
 	if err != nil {
+		ctx.Logger().Error(err)
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
