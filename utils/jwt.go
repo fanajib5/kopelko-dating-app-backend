@@ -12,13 +12,15 @@ var jwtKey []byte
 
 type Claims struct {
 	UserID uint
+	Email  string
 	jwt.RegisteredClaims
 }
 
-func GenerateJWT(userID uint) (string, error) {
+func GenerateJWT(userID uint, email string) (string, error) {
 	expirationTime := time.Now().Add(15 * time.Minute)
 	claims := &Claims{
 		UserID: userID,
+		Email:  email,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    "kopelko-dating-app-backend",
 			ExpiresAt: jwt.NewNumericDate(expirationTime),

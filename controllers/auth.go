@@ -74,9 +74,9 @@ func (c *AuthController) LoginUser(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, map[string]any{
 		"message": "User logged in successfully",
 		"user": map[string]any{
-			"id":    user.ID,
+			"id":    "******",
 			"email": user.MaskEmail(),
 		},
-		"token": user.Token, // Assuming the user service returns a token
+		"token": user.Token,
 	})
 }
