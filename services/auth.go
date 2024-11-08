@@ -5,12 +5,14 @@ import (
 	"kopelko-dating-app-backend/dto"
 	"kopelko-dating-app-backend/models"
 	"kopelko-dating-app-backend/repositories"
+	"kopelko-dating-app-backend/utils"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthService interface {
 	RegisterUser(req *dto.RegisterRequest) (*models.User, error)
+	LoginUser(req *dto.LoginRequest) (*models.User, error)
 }
 
 type authService struct {
@@ -63,4 +65,32 @@ func (s *authService) RegisterUser(req *dto.RegisterRequest) (*models.User, erro
 	}
 
 	return user, nil
+}
+
+func (s *authService) LoginUser(req *dto.LoginRequest) (*models.User, error) {
+	user, err := s.userRepo.FindByEmail(req.Email)
+	if err != nil {
+		return nil, fmt.Errorf("could not find user: %w", err)
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
+		return nil, fmt.Errorf("invalid email or password")
+	}
+
+	// Assuming you have a method to generate a token for the user
+	token, err := s.generateToken(user.ID)
+	if err != nil {
+		return nil, fmt.Errorf("could not generate token: %w", err)
+	}
+
+	user.Token = token
+	return user, nil
+}
+
+func (s *authService) generateToken(userID uint) (string, error) {
+	token, err := utils.GenerateJWT(userID)
+	if err != nil {
+		return "", fmt.Errorf("could not generate token: %w", err)
+	}
+	return token, nil
 }

@@ -8,10 +8,11 @@ import (
 
 type User struct {
 	gorm.Model
+	Profile    Profile `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 	Email      string  `gorm:"unique;not null;column:email"`
 	Password   string  `gorm:"not null;column:password_hash"`
-	IsVerified bool    `gorm:"default:false;column:is_verified"`
-	Profile    Profile `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
+	Token      string
+	IsVerified bool `gorm:"default:false;column:is_verified"`
 }
 
 // Specify table name if different from struct name
