@@ -19,7 +19,7 @@ func SetupRoutes() *echo.Echo {
 
 	api := e.Group("/api")
 	api.POST("/register", cfg.Controllers.Auth.RegisterUser)
-	// api.POST("/login", controllers.Login)
+	api.POST("/login", cfg.Controllers.Auth.LoginUser)
 
 	// user := api.Group("/user")
 	// user.GET("/profile", controllers.ViewProfile)

@@ -13,7 +13,8 @@ import (
 )
 
 type Config struct {
-	DB *gorm.DB
+	DB     *gorm.DB
+	JWTKey []byte
 	Controllers
 }
 
@@ -38,6 +39,10 @@ func (c *Config) initializeDB() {
 		log.Fatalf("could not set up database: %v", err)
 	}
 	c.DB = db
+}
+
+func (c *Config) LoadJWTKey() {
+	c.JWTKey = utils.LoadJWTKey()
 }
 
 // Initialize controllers

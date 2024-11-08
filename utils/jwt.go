@@ -2,12 +2,13 @@ package utils
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var jwtKey = []byte("your_secret_key")
+var jwtKey []byte
 
 type Claims struct {
 	UserID uint
@@ -40,4 +41,9 @@ func ParseJWT(tokenString string) (*Claims, error) {
 		return nil, jwt.ErrSignatureInvalid
 	}
 	return claims, nil
+}
+
+func LoadJWTKey() []byte {
+	jwtKey = []byte(os.Getenv("JWT_KEY"))
+	return jwtKey
 }
