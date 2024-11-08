@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 
 	"kopelko-dating-app-backend/dto"
@@ -27,8 +26,8 @@ func (c *AuthController) RegisterUser(ctx echo.Context) error {
 	}
 
 	if err := ctx.Validate(&req); err != nil {
-		ctx.Logger().Errorf("Validation failed: %w", err)
 		errors := utils.ValidationError(ctx, err)
+		ctx.Logger().Errorf("Validation failed: %w", errors)
 		return ctx.JSON(http.StatusBadRequest, map[string]any{
 			"error":   "Validation failed",
 			"details": errors,
@@ -41,7 +40,7 @@ func (c *AuthController) RegisterUser(ctx echo.Context) error {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
-	ctx.Logger().Info(fmt.Sprintf("User registered successfully: %s", user.MaskEmail()))
+	ctx.Logger().Printf("User registered successfully: %s", user.MaskEmail())
 	return ctx.JSON(http.StatusCreated, map[string]any{
 		"message": "User registered successfully",
 		"user": map[string]any{
@@ -59,8 +58,8 @@ func (c *AuthController) LoginUser(ctx echo.Context) error {
 	}
 
 	if err := ctx.Validate(&req); err != nil {
-		ctx.Logger().Errorf("Validation failed: %w", err)
 		errors := utils.ValidationError(ctx, err)
+		ctx.Logger().Errorf("Validation failed: %w", errors)
 		return ctx.JSON(http.StatusBadRequest, map[string]any{
 			"error":   "Validation failed",
 			"details": errors,
@@ -77,7 +76,7 @@ func (c *AuthController) LoginUser(ctx echo.Context) error {
 	}
 
 	ctx.Set("token", user.Token)
-	ctx.Logger().Info("User logged in successfully")
+	ctx.Logger().Print("User logged in successfully")
 	return ctx.JSON(http.StatusOK, map[string]any{
 		"message": "User logged in successfully",
 		"user": map[string]any{
