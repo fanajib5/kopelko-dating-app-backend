@@ -1,14 +1,14 @@
 package repositories
 
 import (
-	"kopelko-dating-app-backend/models"
+	model "kopelko-dating-app-backend/models"
 
 	"gorm.io/gorm"
 )
 
 type ProfileRepository interface {
-	CreateProfileTx(tx *gorm.DB, profile *models.Profile) error
-	FindByID(id string) (*models.Profile, error)
+	CreateProfileTx(tx *gorm.DB, profile *model.Profile) error
+	FindByID(id string) (*model.Profile, error)
 }
 
 type profileRepo struct {
@@ -19,12 +19,12 @@ func NewProfileRepository(db *gorm.DB) *profileRepo {
 	return &profileRepo{db: db}
 }
 
-func (r *profileRepo) CreateProfileTx(tx *gorm.DB, profile *models.Profile) error {
+func (r *profileRepo) CreateProfileTx(tx *gorm.DB, profile *model.Profile) error {
 	return tx.Create(profile).Error
 }
 
-func (r *profileRepo) FindByID(id string) (*models.Profile, error) {
-	var profile models.Profile
+func (r *profileRepo) FindByID(id string) (*model.Profile, error) {
+	var profile model.Profile
 	if err := r.db.First(&profile, "id = ?", id).Error; err != nil {
 		return nil, err
 	}

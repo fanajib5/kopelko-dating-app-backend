@@ -2,29 +2,30 @@ package services
 
 import (
 	"fmt"
+
 	"kopelko-dating-app-backend/dto"
-	"kopelko-dating-app-backend/models"
-	"kopelko-dating-app-backend/repositories"
-	"kopelko-dating-app-backend/utils"
+	model "kopelko-dating-app-backend/models"
+	repository "kopelko-dating-app-backend/repositories"
+	util "kopelko-dating-app-backend/utils"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthService interface {
-	RegisterUser(req *dto.RegisterRequest) (*models.User, error)
-	LoginUser(req *dto.LoginRequest) (*models.User, error)
+	RegisterUser(req *dto.RegisterRequest) (*model.User, error)
+	LoginUser(req *dto.LoginRequest) (*model.User, error)
 }
 
 type authService struct {
-	userRepo    repositories.UserRepository
-	profileRepo repositories.ProfileRepository
+	userRepo    repository.UserRepository
+	profileRepo repository.ProfileRepository
 }
 
-func NewAuthService(userRepo repositories.UserRepository, profileRepo repositories.ProfileRepository) *authService {
+func NewAuthService(userRepo repository.UserRepository, profileRepo repository.ProfileRepository) *authService {
 	return &authService{userRepo: userRepo, profileRepo: profileRepo}
 }
 
-func (s *authService) RegisterUser(req *dto.RegisterRequest) (*models.User, error) {
+func (s *authService) RegisterUser(req *dto.RegisterRequest) (*model.User, error) {
 	hashedPwd, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, fmt.Errorf("could not hash password: %w", err)
@@ -35,7 +36,7 @@ func (s *authService) RegisterUser(req *dto.RegisterRequest) (*models.User, erro
 		return nil, fmt.Errorf("could not start transaction: %w", tx.Error)
 	}
 
-	user := &models.User{
+	user := &model.User{
 		Email:    req.Email,
 		Password: string(hashedPwd),
 	}
@@ -45,7 +46,7 @@ func (s *authService) RegisterUser(req *dto.RegisterRequest) (*models.User, erro
 		return nil, fmt.Errorf("could not create user: %w", err)
 	}
 
-	profile := &models.Profile{
+	profile := &model.Profile{
 		UserID:   user.ID,
 		Name:     req.Name,
 		Age:      req.Age,
@@ -67,7 +68,7 @@ func (s *authService) RegisterUser(req *dto.RegisterRequest) (*models.User, erro
 	return user, nil
 }
 
-func (s *authService) LoginUser(req *dto.LoginRequest) (*models.User, error) {
+func (s *authService) LoginUser(req *dto.LoginRequest) (*model.User, error) {
 	user, err := s.userRepo.FindByEmail(req.Email)
 	if err != nil {
 		return nil, fmt.Errorf("could not find user: %w", err)
@@ -87,8 +88,8 @@ func (s *authService) LoginUser(req *dto.LoginRequest) (*models.User, error) {
 	return user, nil
 }
 
-func (s *authService) generateToken(user *models.User) (string, error) {
-	token, err := utils.GenerateJWT(user)
+func (s *authService) generateToken(user *model.User) (string, error) {
+	token, err := util.GenerateJWT(*user)
 	if err != nil {
 		return "", fmt.Errorf("could not generate token: %w", err)
 	}

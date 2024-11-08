@@ -4,17 +4,17 @@ import (
 	"net/http"
 
 	"kopelko-dating-app-backend/dto"
-	"kopelko-dating-app-backend/services"
-	"kopelko-dating-app-backend/utils"
+	service "kopelko-dating-app-backend/services"
+	util "kopelko-dating-app-backend/utils"
 
 	"github.com/labstack/echo/v4"
 )
 
 type AuthController struct {
-	userService services.AuthService
+	userService service.AuthService
 }
 
-func NewAuthController(userService services.AuthService) *AuthController {
+func NewAuthController(userService service.AuthService) *AuthController {
 	return &AuthController{userService}
 }
 
@@ -26,7 +26,7 @@ func (c *AuthController) RegisterUser(ctx echo.Context) error {
 	}
 
 	if err := ctx.Validate(&req); err != nil {
-		errors := utils.ValidationError(ctx, err)
+		errors := util.ValidationError(ctx, err)
 		ctx.Logger().Errorf("Validation failed: %w", errors)
 		return ctx.JSON(http.StatusBadRequest, map[string]any{
 			"error":   "Validation failed",
@@ -58,7 +58,7 @@ func (c *AuthController) LoginUser(ctx echo.Context) error {
 	}
 
 	if err := ctx.Validate(&req); err != nil {
-		errors := utils.ValidationError(ctx, err)
+		errors := util.ValidationError(ctx, err)
 		ctx.Logger().Errorf("Validation failed: %w", errors)
 		return ctx.JSON(http.StatusBadRequest, map[string]any{
 			"error":   "Validation failed",

@@ -1,22 +1,22 @@
 package services
 
 import (
-	"kopelko-dating-app-backend/models"
-	"kopelko-dating-app-backend/repositories"
+	model "kopelko-dating-app-backend/models"
+	repository "kopelko-dating-app-backend/repositories"
 )
 
 type ProfileService interface {
-	GetProfileByID(id string) (*models.Profile, error)
+	GetProfileByID(id string) (*model.Profile, error)
 }
 
 type profileService struct {
-	profileRepo repositories.ProfileRepository
+	profileRepo repository.ProfileRepository
 }
 
-func NewProfileService(profileRepo repositories.ProfileRepository) *profileService {
+func NewProfileService(profileRepo repository.ProfileRepository) *profileService {
 	return &profileService{profileRepo: profileRepo}
 }
 
-func (s *profileService) GetProfileByID(id string) (*models.Profile, error) {
+func (s *profileService) GetProfileByID(id string) (*model.Profile, error) {
 	return s.profileRepo.FindByID(id)
 }
