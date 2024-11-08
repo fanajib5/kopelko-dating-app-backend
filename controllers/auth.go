@@ -5,7 +5,9 @@ import (
 
 	"kopelko-dating-app-backend/dto"
 	"kopelko-dating-app-backend/services"
+	"kopelko-dating-app-backend/utils"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
 
@@ -26,7 +28,19 @@ func (c *AuthController) RegisterUser(ctx echo.Context) error {
 
 	if err := ctx.Validate(&req); err != nil {
 		ctx.Logger().Error(err)
-		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed"})
+
+		// Get detailed validation error messages
+		validationErrors := err.(validator.ValidationErrors)
+		errors := make(map[string]string)
+
+		for _, fieldError := range validationErrors {
+			errors[fieldError.Field()] = utils.GetErrorMessage(fieldError)
+		}
+
+		return ctx.JSON(http.StatusBadRequest, map[string]interface{}{
+			"error":   "Validation failed",
+			"details": errors,
+		})
 	}
 
 	user, err := c.userService.RegisterUser(&req)

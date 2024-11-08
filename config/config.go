@@ -1,11 +1,12 @@
 package config
 
 import (
+	"log"
+
 	"kopelko-dating-app-backend/controllers"
 	"kopelko-dating-app-backend/repositories"
 	"kopelko-dating-app-backend/services"
 	"kopelko-dating-app-backend/utils"
-	"log"
 
 	"github.com/joho/godotenv"
 	"gorm.io/gorm"
@@ -57,4 +58,8 @@ func loadEnv() {
 	if err != nil {
 		log.Fatalf("Error loading .env file")
 	}
+}
+
+func NewValidator() *utils.CustomValidator {
+	return utils.NewValidator()
 }
