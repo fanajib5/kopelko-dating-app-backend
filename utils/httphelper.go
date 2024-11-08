@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"net/http"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
@@ -44,4 +46,12 @@ func ValidationError(ctx echo.Context, err error) map[string]string {
 	}
 
 	return errors
+}
+
+// ParseErrorCodeAndMessage parses the error code and message
+func ParseErrorCodeAndMessage(err error) (int, string) {
+	if he, ok := err.(*echo.HTTPError); ok {
+		return he.Code, he.Message.(string)
+	}
+	return http.StatusInternalServerError, err.Error()
 }

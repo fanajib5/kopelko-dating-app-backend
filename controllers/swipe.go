@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	service "kopelko-dating-app-backend/services"
+	util "kopelko-dating-app-backend/utils"
 
 	"github.com/labstack/echo/v4"
 )
@@ -43,7 +44,8 @@ func (sc *SwipeController) SwipeHandler(ctx echo.Context) error {
 	err = sc.swipeService.ProcessSwipe(userID, targetUserID, swipeType, isPremium)
 	if err != nil {
 		ctx.Logger().Error(err)
-		return ctx.JSON(http.StatusForbidden, map[string]string{"error": err.Error()})
+		ec, errMsg := util.ParseErrorCodeAndMessage(err)
+		return ctx.JSON(ec, map[string]string{"error": errMsg})
 	}
 
 	return ctx.JSON(http.StatusOK, map[string]string{"message": "Swipe successful"})

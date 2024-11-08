@@ -26,7 +26,7 @@ func NewSwipeService(repo repository.SwipeRepository, maxSwipes int) *swipeServi
 	return &swipeService{swipeRepo: repo, maxSwipes: maxSwipes}
 }
 
-// Swipe handles the swipe logic with daily limits and swipe uniqueness
+// ProcessSwipe handles the swipe logic with daily limits and swipe uniqueness
 func (s *swipeService) ProcessSwipe(userID uint, targetUserID int, swipeType string, isPremium bool) error {
 	now := time.Now()
 
