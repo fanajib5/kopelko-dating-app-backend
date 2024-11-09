@@ -10,7 +10,7 @@ import (
 )
 
 type SubscriptionService interface {
-	SubscribeUser(userID, featureID int) error
+	SubscribeUser(userID uint, featureID int) error
 }
 
 type subscriptionService struct {
@@ -26,7 +26,7 @@ func NewSubscriptionService(subscriptionRepo repository.SubscriptionRepository, 
 }
 
 // SubscribeUser subscribes a user to a premium feature
-func (s *subscriptionService) SubscribeUser(userID, featureID int) error {
+func (s *subscriptionService) SubscribeUser(userID uint, featureID int) error {
 	feature, err := s.featureRepo.GetFeatureByID(featureID)
 	if feature == nil {
 		return errors.New("premium feature not found")
@@ -34,11 +34,6 @@ func (s *subscriptionService) SubscribeUser(userID, featureID int) error {
 	if err != nil {
 		return fmt.Errorf("could not get premium feature: %w", err)
 	}
-
-	if userID < 0 {
-		return errors.New("invalid user ID")
-	}
-	userIDuint := uint(userID)
 
 	if featureID < 0 {
 		return errors.New("invalid feature ID")
@@ -52,7 +47,7 @@ func (s *subscriptionService) SubscribeUser(userID, featureID int) error {
 	endDate := now.AddDate(0, 1, 0)
 
 	subscription := &model.Subscription{
-		UserID:    userIDuint,
+		UserID:    userID,
 		FeatureID: featureIDuint,
 		StartDate: startDate,
 		EndDate:   endDate,
