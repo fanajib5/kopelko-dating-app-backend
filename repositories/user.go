@@ -1,15 +1,15 @@
 package repositories
 
 import (
-	model "kopelko-dating-app-backend/models"
+	"kopelko-dating-app-backend/models"
 
 	"gorm.io/gorm"
 )
 
 type UserRepository interface {
 	BeginTx() *gorm.DB
-	CreateUserTx(tx *gorm.DB, user *model.User) error
-	FindByEmail(email string) (*model.User, error)
+	CreateUserTx(tx *gorm.DB, user *models.User) error
+	FindByEmail(email string) (*models.User, error)
 }
 
 type userRepo struct {
@@ -24,12 +24,12 @@ func (r *userRepo) BeginTx() *gorm.DB {
 	return r.db.Begin()
 }
 
-func (r *userRepo) CreateUserTx(tx *gorm.DB, user *model.User) error {
+func (r *userRepo) CreateUserTx(tx *gorm.DB, user *models.User) error {
 	return tx.Create(user).Error
 }
 
-func (r *userRepo) FindByEmail(email string) (*model.User, error) {
-	var user model.User
+func (r *userRepo) FindByEmail(email string) (*models.User, error) {
+	var user models.User
 	if err := r.db.Where("email = ?", email).First(&user).Error; err != nil {
 		return nil, err
 	}

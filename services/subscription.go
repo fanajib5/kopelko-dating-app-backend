@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	model "kopelko-dating-app-backend/models"
-	repository "kopelko-dating-app-backend/repositories"
+	"kopelko-dating-app-backend/models"
+	"kopelko-dating-app-backend/repositories"
 )
 
 type SubscriptionService interface {
@@ -14,12 +14,12 @@ type SubscriptionService interface {
 }
 
 type subscriptionService struct {
-	subscriptionRepo repository.SubscriptionRepository
-	featureRepo      repository.PremiumFeatureRepository
-	profileRepo      repository.ProfileRepository
+	subscriptionRepo repositories.SubscriptionRepository
+	featureRepo      repositories.PremiumFeatureRepository
+	profileRepo      repositories.ProfileRepository
 }
 
-func NewSubscriptionService(subscriptionRepo repository.SubscriptionRepository, featureRepo repository.PremiumFeatureRepository, profileRepo repository.ProfileRepository) *subscriptionService {
+func NewSubscriptionService(subscriptionRepo repositories.SubscriptionRepository, featureRepo repositories.PremiumFeatureRepository, profileRepo repositories.ProfileRepository) *subscriptionService {
 	return &subscriptionService{
 		subscriptionRepo: subscriptionRepo,
 		featureRepo:      featureRepo,
@@ -58,7 +58,7 @@ func (s *subscriptionService) SubscribeUser(userID uint, featureID int) error {
 	startDate := now
 	endDate := startDate.AddDate(0, 1, 0)
 
-	subscription := &model.Subscription{
+	subscription := &models.Subscription{
 		UserID:    userID,
 		FeatureID: featureIDuint,
 		StartDate: startDate,

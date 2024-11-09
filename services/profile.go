@@ -3,27 +3,27 @@ package services
 import (
 	"fmt"
 
-	model "kopelko-dating-app-backend/models"
-	repository "kopelko-dating-app-backend/repositories"
+	"kopelko-dating-app-backend/models"
+	"kopelko-dating-app-backend/repositories"
 )
 
 type ProfileService interface {
-	GetProfileByID(id string) (*model.Profile, error)
+	GetProfileByID(id string) (*models.Profile, error)
 }
 
 type profileService struct {
-	profileRepo      repository.ProfileRepository
-	subscriptionRepo repository.SubscriptionRepository
+	profileRepo      repositories.ProfileRepository
+	subscriptionRepo repositories.SubscriptionRepository
 }
 
-func NewProfileService(profileRepo repository.ProfileRepository, subscriptionRepo repository.SubscriptionRepository) *profileService {
+func NewProfileService(profileRepo repositories.ProfileRepository, subscriptionRepo repositories.SubscriptionRepository) *profileService {
 	return &profileService{
 		profileRepo:      profileRepo,
 		subscriptionRepo: subscriptionRepo,
 	}
 }
 
-func (s *profileService) GetProfileByID(id string) (*model.Profile, error) {
+func (s *profileService) GetProfileByID(id string) (*models.Profile, error) {
 	profile, err := s.profileRepo.FindByID(id)
 	if err != nil {
 		return nil, fmt.Errorf("could not get profile: %w", err)
@@ -36,7 +36,7 @@ func (s *profileService) GetProfileByID(id string) (*model.Profile, error) {
 	}
 
 	// Check if user has verified label subscription
-	hasVerifiedLabel, err := s.subscriptionRepo.HasFeature(profile.UserID, model.FeatureNameVerifiedLabel)
+	hasVerifiedLabel, err := s.subscriptionRepo.HasFeature(profile.UserID, models.FeatureNameVerifiedLabel)
 	if err != nil {
 		return nil, err
 	}

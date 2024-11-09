@@ -2,10 +2,9 @@ package utils
 
 import (
 	"fmt"
+	"kopelko-dating-app-backend/models"
 	"os"
 	"time"
-
-	model "kopelko-dating-app-backend/models"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -18,7 +17,7 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-func GenerateJWT(user model.User) (string, error) {
+func GenerateJWT(user models.User) (string, error) {
 	expirationTime := time.Now().Add(15 * time.Minute)
 	claims := &Claims{
 		UserID: user.ID,

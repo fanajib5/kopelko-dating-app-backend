@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	model "kopelko-dating-app-backend/models"
-	repository "kopelko-dating-app-backend/repositories"
+	"kopelko-dating-app-backend/models"
+	"kopelko-dating-app-backend/repositories"
 
 	"github.com/labstack/echo/v4"
 )
@@ -17,13 +17,13 @@ type SwipeService interface {
 }
 
 type swipeService struct {
-	swipeRepo        repository.SwipeRepository
-	subscriptionRepo repository.SubscriptionRepository
+	swipeRepo        repositories.SwipeRepository
+	subscriptionRepo repositories.SubscriptionRepository
 	maxSwipes        int
 }
 
 // NewSwipeService creates a new SwipeService with a maximum swipe limit
-func NewSwipeService(swipeRepo repository.SwipeRepository, subscriptionRepo repository.SubscriptionRepository, maxSwipes int) *swipeService {
+func NewSwipeService(swipeRepo repositories.SwipeRepository, subscriptionRepo repositories.SubscriptionRepository, maxSwipes int) *swipeService {
 	return &swipeService{
 		swipeRepo:        swipeRepo,
 		subscriptionRepo: subscriptionRepo,
@@ -41,7 +41,7 @@ func (s *swipeService) ProcessSwipe(userID uint, targetUserID int, swipeType str
 	targetUserIDuint := uint(targetUserID)
 
 	// Check if the user has an active subscription with "no_swipe_quota" feature
-	hasUnlimitedSwipes, err := s.subscriptionRepo.HasFeature(userID, model.FeatureNameNoSwipeQuota)
+	hasUnlimitedSwipes, err := s.subscriptionRepo.HasFeature(userID, models.FeatureNameNoSwipeQuota)
 	if err != nil {
 		return fmt.Errorf("could not check user subscription: %w", err)
 	}
@@ -63,7 +63,7 @@ func (s *swipeService) ProcessSwipe(userID uint, targetUserID int, swipeType str
 	}
 
 	// Create the swipe
-	swipe := &model.Swipe{
+	swipe := &models.Swipe{
 		UserID:       userID,
 		TargetUserID: targetUserIDuint,
 		SwipeType:    swipeType,

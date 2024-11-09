@@ -1,13 +1,13 @@
 package repositories
 
 import (
-	model "kopelko-dating-app-backend/models"
+	"kopelko-dating-app-backend/models"
 
 	"gorm.io/gorm"
 )
 
 type PremiumFeatureRepository interface {
-	GetFeatureByID(id int) (*model.PremiumFeature, error)
+	GetFeatureByID(id int) (*models.PremiumFeature, error)
 }
 
 type premiumFeatureRepo struct {
@@ -18,8 +18,8 @@ func NewPremiumFeatureRepository(db *gorm.DB) *premiumFeatureRepo {
 	return &premiumFeatureRepo{db: db}
 }
 
-func (repo *premiumFeatureRepo) GetFeatureByID(id int) (*model.PremiumFeature, error) {
-	var feature model.PremiumFeature
+func (repo *premiumFeatureRepo) GetFeatureByID(id int) (*models.PremiumFeature, error) {
+	var feature models.PremiumFeature
 	err := repo.db.First(&feature, id).Error
 	return &feature, err
 }
