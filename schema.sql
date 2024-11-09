@@ -1,4 +1,5 @@
 -- Create enum types
+-- run this command once to create the enum types
 CREATE TYPE gender_enum AS ENUM ('male', 'female', 'other');
 CREATE TYPE swipe_type_enum AS ENUM ('left', 'right');
 CREATE TYPE payment_status_enum AS ENUM ('completed', 'pending');
@@ -23,7 +24,7 @@ CREATE TABLE profiles (
     bio TEXT,
     gender gender_enum,
     location VARCHAR(100),
-    interests TEXT,  -- Comma-separated list of interests
+    interests TEXT[],  -- Array of interests
     photos TEXT[],  -- Array of photo URLs
     is_premium BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP,

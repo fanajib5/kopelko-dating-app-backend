@@ -1,3 +1,4 @@
+-- seeder
 INSERT INTO premium_features (feature_name, description) VALUES
 ('no_swipe_quota', 'Unlimited swipes per day'),
 ('verified_label', 'Verified badge on profile');
@@ -21,10 +22,10 @@ VALUES(2, 1, 4, 'right', '2024-11-08');
 
 INSERT INTO public.profiles
 (id, user_id, "name", age, bio, gender, "location", interests, photos, is_premium, created_at, updated_at, deleted_at)
-VALUES(1, 1, 'Faiq Najib', 20, '', 'male', 'Jalan Aja Dahulu No.212, Surabaya, Jawa Timur', '', NULL, false, '2024-11-08 23:15:56.864', '2024-11-08 23:15:56.864', NULL);
+VALUES(1, 1, 'Faiq Najib', 20, '', 'male', 'Jalan Aja Dahulu No.212, Surabaya, Jawa Timur', NULL, NULL, false, '2024-11-08 23:15:56.864', '2024-11-08 23:15:56.864', NULL);
 INSERT INTO public.profiles
 (id, user_id, "name", age, bio, gender, "location", interests, photos, is_premium, created_at, updated_at, deleted_at)
-VALUES(2, 3, 'Faiq Najib', 20, '', 'male', 'Jalan Aja Dahulu No.212, Surabaya, Jawa Timur', '', NULL, false, '2024-11-08 23:20:52.886', '2024-11-08 23:20:52.886', NULL);
+VALUES(2, 3, 'Faiq Najib', 20, '', 'male', 'Jalan Aja Dahulu No.212, Surabaya, Jawa Timur', NULL, NULL, false, '2024-11-08 23:20:52.886', '2024-11-08 23:20:52.886', NULL);
 INSERT INTO public.profiles
 (id, user_id, "name", age, bio, gender, "location", interests, photos, is_premium, created_at, updated_at, deleted_at)
-VALUES(3, 4, 'Faiq Najib', 20, '', 'male', 'Jalan Aja Dahulu No.212, Surabaya, Jawa Timur', '', NULL, false, '2024-11-08 23:24:46.125', '2024-11-08 23:24:46.125', NULL);
+VALUES(3, 4, 'Faiq Najib', 20, '', 'male', 'Jalan Aja Dahulu No.212, Surabaya, Jawa Timur', NULL, NULL, false, '2024-11-08 23:24:46.125', '2024-11-08 23:24:46.125', NULL);
