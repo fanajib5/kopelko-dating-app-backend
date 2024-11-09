@@ -16,23 +16,34 @@ type SubscriptionService interface {
 type subscriptionService struct {
 	subscriptionRepo repository.SubscriptionRepository
 	featureRepo      repository.PremiumFeatureRepository
+	profileRepo      repository.ProfileRepository
 }
 
-func NewSubscriptionService(subscriptionRepo repository.SubscriptionRepository, featureRepo repository.PremiumFeatureRepository) *subscriptionService {
+func NewSubscriptionService(subscriptionRepo repository.SubscriptionRepository, featureRepo repository.PremiumFeatureRepository, profileRepo repository.ProfileRepository) *subscriptionService {
 	return &subscriptionService{
 		subscriptionRepo: subscriptionRepo,
 		featureRepo:      featureRepo,
+		profileRepo:      profileRepo,
 	}
 }
 
 // SubscribeUser subscribes a user to a premium feature
 func (s *subscriptionService) SubscribeUser(userID uint, featureID int) error {
 	feature, err := s.featureRepo.GetFeatureByID(featureID)
+	if err != nil {
+		return fmt.Errorf("could not get premium feature: %w", err)
+	}
 	if feature == nil {
 		return errors.New("premium feature not found")
 	}
+
+	// Check if user has an active subscription
+	isSubcsribed, err := s.subscriptionRepo.GetActiveSubscription(userID)
 	if err != nil {
-		return fmt.Errorf("could not get premium feature: %w", err)
+		return fmt.Errorf("could not get active subscription: %w", err)
+	}
+	if isSubcsribed == true {
+		return errors.New("user already has an active subscription")
 	}
 
 	if featureID < 0 {
@@ -43,8 +54,9 @@ func (s *subscriptionService) SubscribeUser(userID uint, featureID int) error {
 	now := time.Now()
 
 	// Set subscription duration (e.g., 1 month)
+	// Assume that the subscription duration is 1 month
 	startDate := now
-	endDate := now.AddDate(0, 1, 0)
+	endDate := startDate.AddDate(0, 1, 0)
 
 	subscription := &model.Subscription{
 		UserID:    userID,
@@ -54,9 +66,25 @@ func (s *subscriptionService) SubscribeUser(userID uint, featureID int) error {
 		AutoRenew: true,
 	}
 
-	err = s.subscriptionRepo.CreateSubscription(subscription)
-	if err != nil {
+	tx := s.profileRepo.BeginTx()
+	if tx.Error != nil {
+		return fmt.Errorf("could not start transaction: %w", tx.Error)
+	}
+
+	if err = s.subscriptionRepo.CreateSubscriptionTx(tx, subscription); err != nil {
+		tx.Rollback()
 		return fmt.Errorf("could not create subscription: %w", err)
+	}
+
+	// Update profile's IsPremium to true
+	if err := s.profileRepo.UpdateIsPremiumTx(tx, userID, true); err != nil {
+		tx.Rollback()
+		return fmt.Errorf("could not update profile: %w", err)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("could not commit transaction: %w", err)
 	}
 
 	return nil

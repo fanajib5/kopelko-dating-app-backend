@@ -63,7 +63,7 @@ func (c *Config) initializeControllers() {
 	// Service components
 	pfs := service.NewProfileService(pfr, sbr)
 	aus := service.NewAuthService(usr, pfr)
-	sbs := service.NewSubscriptionService(sbr, pmr)
+	sbs := service.NewSubscriptionService(sbr, pmr, pfr)
 	sws := service.NewSwipeService(swr, sbr, 10)
 
 	// Controller components

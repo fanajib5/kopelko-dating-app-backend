@@ -8,7 +8,7 @@ type RegisterRequest struct {
 	Bio       string   `json:"bio"`
 	Gender    string   `json:"gender" validate:"required,oneof=male female"`
 	Location  string   `json:"location"`
-	Interests string   `json:"interests"`
+	Interests []string `json:"interests"`
 	Photos    []string `json:"photos"`
 	IsPremium bool     `json:"is_premium"`
 }
