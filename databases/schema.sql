@@ -83,4 +83,3 @@ CREATE INDEX idx_swipe_user_id ON swipes(user_id);
 CREATE INDEX idx_match_user1_id ON matches(user1_id);
 CREATE INDEX idx_match_user2_id ON matches(user2_id);
 CREATE INDEX idx_subscription_user_id ON subscriptions(user_id);
-CREATE INDEX idx_payment_user_id ON payments(user_id);
