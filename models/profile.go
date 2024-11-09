@@ -20,7 +20,7 @@ type Profile struct {
 	Interests     []string       `json:"interests" gorm:"column:interests"`
 	Photos        []string       `json:"photos" gorm:"type:text[];column:photos"`
 	IsPremium     bool           `json:"is_premium" gorm:"default:false;column:is_premium"`
-	VerifiedLabel bool           `json:"verified_label"`
+	VerifiedLabel bool           `json:"verified_label" gorm:"default:false;column:verified_label"`
 }
 
 func (Profile) TableName() string {

@@ -12,7 +12,7 @@ type User struct {
 	Email      string  `gorm:"unique;not null;column:email"`
 	Password   string  `gorm:"not null;column:password_hash"`
 	IsVerified bool    `gorm:"default:false;column:is_verified"`
-	Token      string
+	Token      string  `gorm:"-"`
 }
 
 // Specify table name if different from struct name
