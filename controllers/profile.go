@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"kopelko-dating-app-backend/services"
+	"kopelko-dating-app-backend/utils"
 
 	"github.com/labstack/echo/v4"
 )
@@ -18,7 +19,7 @@ func NewProfileController(profileService services.ProfileService) *ProfileContro
 
 func (c *ProfileController) ViewMyProfile(ctx echo.Context) error {
 	// Retrieve the user ID from the Echo context
-	id := ctx.Get("user_id").(uint)
+	id := utils.GetUserIDFromContext(ctx)
 
 	profile, err := c.profileService.GetProfileByID(id)
 	if err != nil {

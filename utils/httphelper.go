@@ -55,3 +55,8 @@ func ParseErrorCodeAndMessage(err error) (int, string) {
 	}
 	return http.StatusInternalServerError, err.Error()
 }
+
+// GetUserIDFromContext retrieves the user ID from the Echo context
+func GetUserIDFromContext(ctx echo.Context) uint {
+	return ctx.Get("user_id").(uint)
+}

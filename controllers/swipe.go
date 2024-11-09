@@ -23,7 +23,7 @@ func NewSwipeController(swipeService services.SwipeService) *SwipeController {
 
 // SwipeHandler processes swipe requests
 func (sc *SwipeController) SwipeHandler(ctx echo.Context) error {
-	userID := ctx.Get("user_id").(uint)
+	userID := utils.GetUserIDFromContext(ctx)
 
 	targetUserID, err := strconv.Atoi(ctx.Param("target_user_id"))
 	if err != nil {
