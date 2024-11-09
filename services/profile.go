@@ -11,11 +11,15 @@ type ProfileService interface {
 }
 
 type profileService struct {
-	profileRepo repository.ProfileRepository
+	profileRepo      repository.ProfileRepository
+	subscriptionRepo repository.SubscriptionRepository
 }
 
-func NewProfileService(profileRepo repository.ProfileRepository) *profileService {
-	return &profileService{profileRepo: profileRepo}
+func NewProfileService(profileRepo repository.ProfileRepository, subscriptionRepo repository.SubscriptionRepository) *profileService {
+	return &profileService{
+		profileRepo:      profileRepo,
+		subscriptionRepo: subscriptionRepo,
+	}
 }
 
 func (s *profileService) GetProfileByID(id string) (*model.Profile, error) {
@@ -23,5 +27,13 @@ func (s *profileService) GetProfileByID(id string) (*model.Profile, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not get profile: %w", err)
 	}
+
+	// Check if user has verified label subscription
+	hasVerifiedLabel, err := s.subscriptionRepo.HasFeature(profile.UserID, model.FeatureNameVerifiedLabel)
+	if err != nil {
+		return nil, err
+	}
+
+	profile.VerifiedLabel = hasVerifiedLabel
 	return profile, nil
 }

@@ -17,8 +17,8 @@ func NewProfileController(profileService services.ProfileService) *ProfileContro
 }
 
 func (c *ProfileController) ViewProfile(ctx echo.Context) error {
-	profileID := ctx.Param("id")
-	profile, err := c.profileService.GetProfileByID(profileID)
+	id := ctx.Param("id")
+	profile, err := c.profileService.GetProfileByID(id)
 	if err != nil {
 		ctx.Logger().Error(err)
 		return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Profile not found"})
