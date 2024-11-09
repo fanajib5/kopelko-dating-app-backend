@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"kopelko-dating-app-backend/utils"
 	"net/http"
 	"strings"
 
@@ -10,6 +11,7 @@ import (
 
 // AuthMiddleware is a middleware function that validates the JWT token
 func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	jwtKey := utils.GetJWTKey()
 	return func(ctx echo.Context) error {
 		ctx.Logger().Print("Authenticating user...")
 
@@ -27,7 +29,7 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		tokenStr := parts[1]
 
 		// Parse and validate the JWT token
-		claims := &Claims{}
+		claims := &utils.Claims{}
 		token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
 			return jwtKey, nil
 		})
