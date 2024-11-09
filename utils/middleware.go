@@ -10,19 +10,19 @@ import (
 
 // AuthMiddleware is a middleware function that validates the JWT token
 func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		c.Logger().Info("Authenticating user...")
+	return func(ctx echo.Context) error {
+		ctx.Logger().Print("Authenticating user...")
 
 		// Retrieve the token from the Authorization header
-		authHeader := c.Request().Header.Get("Authorization")
+		authHeader := ctx.Request().Header.Get("Authorization")
 		if authHeader == "" {
-			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization header missing"})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authorization header missing"})
 		}
 
 		// Extract the token, expecting the format "Bearer <token>"
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
-			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid authorization format"})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid authorization format"})
 		}
 		tokenStr := parts[1]
 
@@ -33,14 +33,14 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		})
 
 		if err != nil || !token.Valid {
-			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid or expired token"})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid or expired token"})
 		}
 
 		// Token is valid; attach user information to the context
-		c.Set("user_id", claims.UserID)
-		c.Set("user_email", claims.Email)
+		ctx.Set("user_id", claims.UserID)
+		ctx.Set("user_email", claims.Email)
 
 		// Proceed to the next handler
-		return next(c)
+		return next(ctx)
 	}
 }
