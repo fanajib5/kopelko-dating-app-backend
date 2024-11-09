@@ -8,7 +8,6 @@ A backend system for a dating app (similar to T\*nder/B\*mble) built using Golan
 - Profile Management with verification label for premium users
 - Swipe functionality with swipe quota limit and view restriction
 - Premium feature subscriptions with options for verified label or no swipe quota
-- Payments integration with multiple providers
 - Database schema with constraints and relationships to support complex functionalities
 - Custom middleware for authentication
 
@@ -16,8 +15,6 @@ A backend system for a dating app (similar to T\*nder/B\*mble) built using Golan
 
 - **Golang** >= 1.18
 - **PostgreSQL** >= 13
-- **Docker** (for containerized deployment)
-- **Make** (optional, for convenience in running commands)
 
 ## Setup & Installation
 
@@ -85,11 +82,8 @@ Kopelko-Dating-App/
 ├── .gitignore                  # Git ignore file to avoid committing unnecessary files
 ├── go.mod                      # Go module file, manages project dependencies
 ├── go.sum                      # Dependency checksum file
-├── Kopelko Dating App.postman_collection.json  # Postman collection for testing endpoints
 ├── main.go                     # Main entry point for the application
 ├── README.md                   # Documentation for the project setup, structure, and usage
-├── .vscode/                    # VS Code-specific settings
-│   └── launch.json             # Configuration for debugging the project in VS Code
 ├── config/                     # Configuration files and setup
 │   └── config.go               # Loads and parses environment variables
 ├── controllers/                # Handles HTTP request processing and response generation
@@ -99,18 +93,17 @@ Kopelko-Dating-App/
 │   └── swipe.go                # Controller for swipe functionality
 ├── databases/                  # Database migration and seeding management
 │   ├── migrations/             # Database migration files
-│   │   ├── migration.go        # Migration setup using GORM
-│   │   └── schema.sql          # SQL script for initial schema setup (optional)
+│   │   ├── migration.go        # Migration setup that execute the SQL file
+│   │   └── schema.sql          # SQL script for initial schema setup
 │   └── seeders/                # Seed data setup for initial database population
-│       ├── seeder.go           # Seed management using GORM
-│       └── seeder.sql          # SQL file for initial data (optional)
+│       ├── seeder.go           # Seed management that execute the SQL file
+│       └── seeder.sql          # SQL file for initial data
 ├── dto/                        # Data Transfer Objects for request and response validation
 │   ├── login_request.go        # DTO for login request validation
 │   └── register_request.go     # DTO for register request validation
 ├── middlewares/                # Custom middleware functions for the app
 │   └── middleware.go           # Authentication and logging middleware setup
 ├── models/                     # Defines database schemas using GORM models
-│   ├── match.go                # Match model
 │   ├── premium_feature.go      # Premium feature model
 │   ├── profile.go              # Profile model
 │   ├── profile_view.go         # Profile view model
@@ -120,12 +113,10 @@ Kopelko-Dating-App/
 ├── repositories/               # Data access layer to manage database interactions
 │   ├── premium_feature.go      # Repository for premium feature operations
 │   ├── profile.go              # Repository for profile operations
-│   ├── profile_test.txt        # Placeholder test file for profile repository
 │   ├── profile_view.go         # Repository for profile view operations
 │   ├── subscription.go         # Repository for subscription operations
 │   ├── swipe.go                # Repository for swipe operations
-│   ├── user.go                 # Repository for user operations
-│   └── user_test.txt           # Placeholder test file for user repository
+│   └── user.go                 # Repository for user operations
 ├── routes/                     # API route registration
 │   └── routes.go               # Define and group routes for each resource
 ├── services/                   # Core business logic for different functionalities
@@ -135,7 +126,7 @@ Kopelko-Dating-App/
 │   ├── subscription.go         # Service for subscription-related logic
 │   └── swipe.go                # Service for swipe functionality
 ├── tests/                      # Testing resources
-│   └── Kopelko Dating App.postman_collection.json  # Postman tests for API endpoints
+│   └── Kopelko_Dating_App.postman_collection.json  # Postman tests for API endpoints
 └── utils/                      # Utility functions for the app
     ├── db.go                   # Database connection setup
     ├── httphelper.go           # Helper functions for HTTP responses
@@ -205,73 +196,6 @@ Then, run linting:
 golangci-lint run
 ```
 
-## Deployment
-
-### Docker
-
-1. **Build Docker Image**:
-
-   ```bash
-   docker build -t dating-app-backend .
-   ```
-
-2. **Run Docker Container**:
-
-   ```bash
-   docker run -d -p 8080:8080 --env-file .env dating-app-backend
-   ```
-
-   The application should now be accessible on `http://localhost:8080`.
-
-### Kubernetes
-
-1. **Set Up Deployment and Service YAMLs**:
-   Create Kubernetes deployment and service YAML files for the application and PostgreSQL database.
-
-2. **Apply YAML Configurations**:
-
-   ```bash
-   kubectl apply -f k8s/dating-app-deployment.yaml
-   kubectl apply -f k8s/postgres-deployment.yaml
-   ```
-
-3. **Access the Application**:
-   The service can be accessed through the cluster IP or set up as a LoadBalancer.
-
-### Heroku
-
-To deploy to Heroku (assuming you have a Heroku account and the CLI installed):
-
-1. **Create a New Heroku App**:
-
-   ```bash
-   heroku create
-   ```
-
-2. **Add PostgreSQL Add-on**:
-
-   ```bash
-   heroku addons:create heroku-postgresql:hobby-dev
-   ```
-
-3. **Push to Heroku**:
-
-   ```bash
-   git push heroku main
-   ```
-
-4. **Set Environment Variables**:
-
-   ```bash
-   heroku config:set JWT_SECRET=your_secret_key
-   ```
-
-5. **Run Migrations**:
-
-   ```bash
-   heroku run go run migrations/migrate.go
-   ```
-
 ## API Endpoints
 
 - **Authentication**:
@@ -286,6 +210,8 @@ To deploy to Heroku (assuming you have a Heroku account and the CLI installed):
   - `POST /users/subscriptions`: Purchase a premium feature
 
 ## Sample Requests
+
+More examples is on the Postman JSON file: [Kopelko_Dating_App.postman_collection.json](/tests/Kopelko_Dating_App.postman_collection.json).
 
 ### Swipe Example
 
