@@ -1,4 +1,4 @@
-package utils
+package middlewares
 
 import (
 	"net/http"
@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestValidationError(t *testing.T) {
+func Test_middlewares_GetValidationError(t *testing.T) {
 	e := echo.New()
 	ctx := e.NewContext(nil, nil)
 
@@ -45,7 +45,7 @@ func TestValidationError(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			err := validate.Struct(tc.input)
 			if err != nil {
-				validationErrors := ValidationError(ctx, err)
+				validationErrors := GetValidationError(ctx, err)
 				assert.Equal(t, tc.expectedError, validationErrors)
 			} else {
 				t.Errorf("Expected validation error but got none")
@@ -54,7 +54,7 @@ func TestValidationError(t *testing.T) {
 	}
 }
 
-func TestGetUserIDFromContext(t *testing.T) {
+func Test_middlewares_GetUserIDFromContext(t *testing.T) {
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
@@ -71,7 +71,7 @@ func TestGetUserIDFromContext(t *testing.T) {
 	assert.Equal(t, expectedUserID, userID)
 }
 
-func TestParseErrorCodeAndMessage(t *testing.T) {
+func Test_middlewares_ParseErrorCodeAndMessage(t *testing.T) {
 	testCases := []struct {
 		name            string
 		inputError      error

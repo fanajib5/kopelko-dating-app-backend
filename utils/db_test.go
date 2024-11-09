@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func Test_InitDB(t *testing.T) {
+func Test_utils_InitDB(t *testing.T) {
 	// Create a mock database connection
 	mockDB, _, err := sqlmock.New()
 	require.NoError(t, err)

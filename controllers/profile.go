@@ -3,8 +3,8 @@ package controllers
 import (
 	"net/http"
 
+	m "kopelko-dating-app-backend/middlewares"
 	"kopelko-dating-app-backend/services"
-	"kopelko-dating-app-backend/utils"
 
 	"github.com/labstack/echo/v4"
 )
@@ -19,7 +19,7 @@ func NewProfileController(profileService services.ProfileService) *ProfileContro
 
 func (c *ProfileController) ViewMyProfile(ctx echo.Context) error {
 	// Retrieve the user ID from the Echo context
-	id := utils.GetUserIDFromContext(ctx)
+	id := m.GetUserIDFromContext(ctx)
 
 	profile, err := c.profileService.GetProfileByID(id)
 	if err != nil {
@@ -31,10 +31,10 @@ func (c *ProfileController) ViewMyProfile(ctx echo.Context) error {
 }
 
 func (c *ProfileController) RandomProfiles(ctx echo.Context) error {
-	viewerID := utils.GetUserIDFromContext(ctx)
+	viewerID := m.GetUserIDFromContext(ctx)
 	profiles, err := c.profileService.GetRandomProfiles(viewerID)
 	if err != nil {
-		ec, errMsg := utils.ParseErrorCodeAndMessage(err)
+		ec, errMsg := m.ParseErrorCodeAndMessage(err)
 		ctx.Logger().Error(errMsg)
 		return ctx.JSON(ec, map[string]string{"error": errMsg})
 	}

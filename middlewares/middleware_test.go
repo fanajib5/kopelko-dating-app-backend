@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAuthMiddleware(t *testing.T) {
+func Test_middlewares_AuthMiddleware(t *testing.T) {
 	e := echo.New()
 	mockToken := func() string {
 		token, err := utils.GenerateJWT(models.User{ID: 1, Email: "test@xample.com"})

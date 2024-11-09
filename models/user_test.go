@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_MaskEmail(t *testing.T) {
+func Test_models_MaskEmail(t *testing.T) {
 	testCases := []struct {
 		name     string
 		email    string

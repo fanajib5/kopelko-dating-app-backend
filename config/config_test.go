@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"kopelko-dating-app-backend/utils"
+	m "kopelko-dating-app-backend/middlewares"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
@@ -13,15 +13,15 @@ import (
 	"gorm.io/gorm"
 )
 
-func Test_NewValidator(t *testing.T) {
-	expected := utils.NewValidator()
+func Test_config_NewValidator(t *testing.T) {
+	expected := m.NewValidator()
 
 	output := NewValidator()
 	assert.NotNil(t, output)
 	assert.IsType(t, expected, output)
 }
 
-func Test_LoadEnv(t *testing.T) {
+func Test_config_LoadEnv(t *testing.T) {
 	err := os.WriteFile(".env", []byte("API_PORT=8080"), 0644)
 	require.NoError(t, err)
 	loadEnv()
@@ -34,7 +34,7 @@ func Test_LoadEnv(t *testing.T) {
 	})
 }
 
-func Test_LoadAPIPort(t *testing.T) {
+func Test_config_LoadAPIPort(t *testing.T) {
 	// Test when API_PORT is set in the environment
 	err := os.Setenv("API_PORT", "8080")
 	require.NoError(t, err)
@@ -55,7 +55,7 @@ func Test_LoadAPIPort(t *testing.T) {
 	})
 }
 
-func Test_initializeControllers(t *testing.T) {
+func Test_config_initializeControllers(t *testing.T) {
 	// Create a mock database connection
 	db, _, err := sqlmock.New()
 	require.NoError(t, err)
@@ -79,7 +79,7 @@ func Test_initializeControllers(t *testing.T) {
 	})
 }
 
-func Test_LoadLimitSwipe(t *testing.T) {
+func Test_config_LoadLimitSwipe(t *testing.T) {
 	// Test when LIMIT_SWIPE is set and valid
 	err := os.Setenv("LIMIT_SWIPE", "15")
 	require.NoError(t, err)
@@ -107,7 +107,7 @@ func Test_LoadLimitSwipe(t *testing.T) {
 	})
 }
 
-func Test_LoadJWTKey(t *testing.T) {
+func Test_config_LoadJWTKey(t *testing.T) {
 	// Mock the LoadJWTKey function
 	expectedKey := []byte("mocked_jwt_key")
 

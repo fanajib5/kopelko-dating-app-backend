@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
+	m "kopelko-dating-app-backend/middlewares"
 	"kopelko-dating-app-backend/services"
-	"kopelko-dating-app-backend/utils"
 
 	"github.com/labstack/echo/v4"
 )
@@ -19,7 +19,7 @@ func NewSubscriptionController(service services.SubscriptionService) *Subscripti
 }
 
 func (sc *SubscriptionController) SubscribeHandler(ctx echo.Context) error {
-	userIDjwt := utils.GetUserIDFromContext(ctx)
+	userIDjwt := m.GetUserIDFromContext(ctx)
 	featureID, err := strconv.Atoi(ctx.QueryParam("feature_id"))
 	if err != nil {
 		ctx.Logger().Errorf("Invalid feature ID: %w", err)

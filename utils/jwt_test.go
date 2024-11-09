@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_LoadJWTKey(t *testing.T) {
+func Test_utils_LoadJWTKey(t *testing.T) {
 	expectedKey := "mysecretkey"
 	os.Setenv("JWT_KEY", expectedKey)
 
@@ -21,7 +21,7 @@ func Test_LoadJWTKey(t *testing.T) {
 	assert.Equal(t, []byte(expectedKey), actualKey)
 }
 
-func Test_GenerateJWT(t *testing.T) {
+func Test_utils_GenerateJWT(t *testing.T) {
 	LoadJWTKey()
 	user := models.User{
 		ID:    1,
@@ -44,7 +44,7 @@ func Test_GenerateJWT(t *testing.T) {
 	assert.True(t, claims.ExpiresAt.Time.After(time.Now()))
 }
 
-func Test_ParseJWT(t *testing.T) {
+func Test_utils_ParseJWT(t *testing.T) {
 	LoadJWTKey()
 	user := models.User{
 		ID:    1,
@@ -63,7 +63,7 @@ func Test_ParseJWT(t *testing.T) {
 	assert.True(t, claims.ExpiresAt.Time.After(time.Now()))
 }
 
-func Test_ParseJWT_Failed(t *testing.T) {
+func Test_utils_ParseJWT_Failed(t *testing.T) {
 	LoadJWTKey()
 	expiredTime := time.Now().Add(-15 * time.Minute)
 	claims := &Claims{

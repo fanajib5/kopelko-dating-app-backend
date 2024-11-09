@@ -1,4 +1,4 @@
-package utils
+package middlewares
 
 import (
 	"testing"
@@ -11,7 +11,7 @@ type TestStruct struct {
 	Email string `validate:"required,email"`
 }
 
-func TestCustomValidator_Validate(t *testing.T) {
+func Test_middlewares_CustomValidator_Validate(t *testing.T) {
 	cv := NewValidator()
 
 	tests := []struct {

@@ -1,4 +1,4 @@
-package utils
+package middlewares
 
 import (
 	"net/http"
@@ -34,8 +34,8 @@ func getErrorMessage(fieldError validator.FieldError) string {
 	}
 }
 
-// ValidationError handles validation errors
-func ValidationError(ctx echo.Context, err error) map[string]string {
+// GetValidationError handles validation errors
+func GetValidationError(ctx echo.Context, err error) map[string]string {
 
 	// Get detailed validation error messages
 	validationErrors := err.(validator.ValidationErrors)

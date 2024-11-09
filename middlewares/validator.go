@@ -1,4 +1,4 @@
-package utils
+package middlewares
 
 import (
 	"github.com/go-playground/validator/v10"

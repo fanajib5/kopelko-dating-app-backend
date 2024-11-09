@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"kopelko-dating-app-backend/controllers"
+	m "kopelko-dating-app-backend/middlewares"
 	"kopelko-dating-app-backend/repositories"
 	"kopelko-dating-app-backend/services"
 	"kopelko-dating-app-backend/utils"
@@ -101,6 +102,6 @@ func loadEnv() {
 	}
 }
 
-func NewValidator() *utils.CustomValidator {
-	return utils.NewValidator()
+func NewValidator() *m.CustomValidator {
+	return m.NewValidator()
 }

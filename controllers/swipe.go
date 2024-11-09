@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
+	m "kopelko-dating-app-backend/middlewares"
 	"kopelko-dating-app-backend/models"
 	"kopelko-dating-app-backend/services"
-	"kopelko-dating-app-backend/utils"
 
 	"github.com/labstack/echo/v4"
 )
@@ -23,7 +23,7 @@ func NewSwipeController(swipeService services.SwipeService) *SwipeController {
 
 // SwipeHandler processes swipe requests
 func (sc *SwipeController) SwipeHandler(ctx echo.Context) error {
-	userID := utils.GetUserIDFromContext(ctx)
+	userID := m.GetUserIDFromContext(ctx)
 
 	targetUserID, err := strconv.Atoi(ctx.Param("target_user_id"))
 	if err != nil {
@@ -40,7 +40,7 @@ func (sc *SwipeController) SwipeHandler(ctx echo.Context) error {
 	err = sc.swipeService.SwipeProfile(userID, targetUserID, swipeType)
 	if err != nil {
 		ctx.Logger().Error(err)
-		ec, errMsg := utils.ParseErrorCodeAndMessage(err)
+		ec, errMsg := m.ParseErrorCodeAndMessage(err)
 		return ctx.JSON(ec, map[string]string{"error": errMsg})
 	}
 
