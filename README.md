@@ -134,6 +134,8 @@ Kopelko-Dating-App/
 │   ├── profile.go              # Service for profile-related logic
 │   ├── subscription.go         # Service for subscription-related logic
 │   └── swipe.go                # Service for swipe functionality
+├── tests/                      # Testing resources
+│   └── Kopelko Dating App.postman_collection.json  # Postman tests for API endpoints
 └── utils/                      # Utility functions for the app
     ├── db.go                   # Database connection setup
     ├── httphelper.go           # Helper functions for HTTP responses
@@ -172,6 +174,9 @@ Kopelko-Dating-App/
 
 - **Services**:
   Encapsulates business logic for each feature. For example, `auth.go` handles authentication processes (e.g., registration, login), while `profile.go` manages profile operations (e.g., viewing profiles).
+
+- **Tests**:
+The tests folder contains resources and tools for testing, including Postman collections for automated API testing.
 
 - **Utilities**:
   Shared functions, such as database initialization (`db.go`), token management (`jwt.go`), HTTP response helpers (`httphelper.go`), and custom validators (`validator.go`), are here to avoid duplicating code.
