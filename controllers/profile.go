@@ -16,7 +16,7 @@ func NewProfileController(profileService services.ProfileService) *ProfileContro
 	return &ProfileController{profileService: profileService}
 }
 
-func (c *ProfileController) ViewProfile(ctx echo.Context) error {
+func (c *ProfileController) ViewMyProfile(ctx echo.Context) error {
 	id := ctx.Param("id")
 	profile, err := c.profileService.GetProfileByID(id)
 	if err != nil {
