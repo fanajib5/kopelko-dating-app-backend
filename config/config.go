@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"strconv"
 
 	"kopelko-dating-app-backend/controllers"
 	"kopelko-dating-app-backend/repositories"
@@ -14,11 +15,14 @@ import (
 )
 
 type Config struct {
-	DB      *gorm.DB
-	JWTKey  []byte
-	APIPort string
+	DB         *gorm.DB
+	JWTKey     []byte
+	APIPort    string
+	LimitSwipe int
 	Controllers
 }
+
+const defaultLimitSwipe = 10
 
 type Controllers struct {
 	Auth      *controllers.AuthController
@@ -34,6 +38,8 @@ func New() *Config {
 	c.initializeDB()
 	c.initializeControllers()
 	c.LoadAPIPort()
+	c.LoadLimitSwipe()
+	c.LoadJWTKey()
 
 	return c
 }
@@ -51,6 +57,16 @@ func (c *Config) LoadJWTKey() {
 	c.JWTKey = utils.LoadJWTKey()
 }
 
+func (c *Config) LoadLimitSwipe() {
+	limitSwipe := os.Getenv("LIMIT_SWIPE")
+	limitSwipeInt, err := strconv.Atoi(limitSwipe)
+	if err != nil {
+		limitSwipeInt = defaultLimitSwipe
+		log.Printf("could not convert LIMIT_SWIPE to int: %v, falling back to default value: %d", err, defaultLimitSwipe)
+	}
+	c.LimitSwipe = limitSwipeInt
+}
+
 // Initialize controllers
 func (c *Config) initializeControllers() {
 	// repositories. components
@@ -64,7 +80,7 @@ func (c *Config) initializeControllers() {
 	pfs := services.NewProfileService(pfr, sbr)
 	aus := services.NewAuthService(usr, pfr)
 	sbs := services.NewSubscriptionService(sbr, pmr, pfr)
-	sws := services.NewSwipeService(swr, sbr, 10)
+	sws := services.NewSwipeService(swr, sbr, c.LimitSwipe)
 
 	// Controller components
 	c.Controllers.Profile = controllers.NewProfileController(pfs)

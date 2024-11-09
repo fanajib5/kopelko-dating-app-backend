@@ -8,7 +8,8 @@ import (
 )
 
 type ProfileService interface {
-	GetProfileByID(id string) (*models.Profile, error)
+	GetProfileByID(id uint) (*models.Profile, error)
+	GetRandomProfile() (*models.Profile, error)
 }
 
 type profileService struct {
@@ -23,12 +24,25 @@ func NewProfileService(profileRepo repositories.ProfileRepository, subscriptionR
 	}
 }
 
-func (s *profileService) GetProfileByID(id string) (*models.Profile, error) {
+func (s *profileService) GetProfileByID(id uint) (*models.Profile, error) {
 	profile, err := s.profileRepo.FindByID(id)
 	if err != nil {
 		return nil, fmt.Errorf("could not get profile: %w", err)
 	}
 
+	return s.getProfile(profile)
+}
+
+func (s *profileService) GetRandomProfile() (*models.Profile, error) {
+	profile, err := s.profileRepo.FindRandom()
+	if err != nil {
+		return nil, fmt.Errorf("could not get random profile: %w", err)
+	}
+
+	return s.getProfile(profile)
+}
+
+func (s *profileService) getProfile(profile *models.Profile) (*models.Profile, error) {
 	// Check if user has an active subscription
 	subscription, err := s.subscriptionRepo.GetActiveSubscription(profile.UserID)
 	if err != nil {

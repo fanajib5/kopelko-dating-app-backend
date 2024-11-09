@@ -17,8 +17,20 @@ func NewProfileController(profileService services.ProfileService) *ProfileContro
 }
 
 func (c *ProfileController) ViewMyProfile(ctx echo.Context) error {
-	id := ctx.Param("id")
+	// Retrieve the user ID from the Echo context
+	id := ctx.Get("user_id").(uint)
+
 	profile, err := c.profileService.GetProfileByID(id)
+	if err != nil {
+		ctx.Logger().Error(err)
+		return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Profile not found"})
+	}
+
+	return ctx.JSON(http.StatusOK, profile)
+}
+
+func (c *ProfileController) RandomProfile(ctx echo.Context) error {
+	profile, err := c.profileService.GetRandomProfile()
 	if err != nil {
 		ctx.Logger().Error(err)
 		return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Profile not found"})
