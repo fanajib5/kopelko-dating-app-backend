@@ -10,7 +10,7 @@ import (
 
 type ProfileService interface {
 	GetProfileByID(id uint) (*models.Profile, error)
-	GetRandomProfile(viewerID uint) (*models.Profile, error)
+	GetRandomProfile(viewerID uint) ([]models.Profile, error)
 }
 
 type profileService struct {
