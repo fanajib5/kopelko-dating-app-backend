@@ -70,6 +70,7 @@ CREATE TABLE profile_views (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     viewed_user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    swipe_id INT REFERENCES swipes(id) ON DELETE CASCADE,
     view_date DATE NOT NULL DEFAULT CURRENT_DATE,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,

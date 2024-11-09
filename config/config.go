@@ -36,10 +36,10 @@ func New() *Config {
 
 	var c = new(Config)
 	c.initializeDB()
-	c.initializeControllers()
 	c.LoadAPIPort()
 	c.LoadLimitSwipe()
 	c.LoadJWTKey()
+	c.initializeControllers()
 
 	return c
 }
@@ -81,7 +81,7 @@ func (c *Config) initializeControllers() {
 	pfs := services.NewProfileService(pfr, pvr, sbr, c.LimitSwipe)
 	aus := services.NewAuthService(usr, pfr)
 	sbs := services.NewSubscriptionService(sbr, pmr, pfr)
-	sws := services.NewSwipeService(swr, sbr, c.LimitSwipe)
+	sws := services.NewSwipeService(swr, sbr, pvr, c.LimitSwipe)
 
 	// Controller components
 	c.Controllers.Profile = controllers.NewProfileController(pfs)

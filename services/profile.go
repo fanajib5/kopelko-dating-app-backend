@@ -10,7 +10,7 @@ import (
 
 type ProfileService interface {
 	GetProfileByID(id uint) (*models.Profile, error)
-	GetRandomProfile(viewerID uint) ([]models.Profile, error)
+	GetRandomProfiles(viewerID uint) (*models.Profile, error)
 }
 
 type profileService struct {
@@ -54,29 +54,26 @@ func (s *profileService) GetProfileByID(id uint) (*models.Profile, error) {
 	return profile, nil
 }
 
-func (s *profileService) GetRandomProfile(viewerID uint) ([]models.Profile, error) {
-	// Get profiles the user hasn’t viewed today, limited to 10
-	profiles, err := s.profileViewRepo.GetUnviewedProfiles(viewerID, s.limitView)
+func (s *profileService) GetRandomProfiles(viewerID uint) (*models.Profile, error) {
+	profile, err := s.profileViewRepo.GetUnviewedProfiles(viewerID)
 	if err != nil {
 		return nil, fmt.Errorf("could not get unviewed profiles: %w", err)
 	}
 
 	// If there are no profiles to view, return an error
-	if profiles == nil {
+	if profile == nil {
 		return nil, fmt.Errorf("no profiles to view, you've reached the limit to view profiles today")
 	}
 
 	// Log views in the `profile_views` table
-	for _, profile := range profiles {
-		view := models.ProfileView{
-			UserID:       viewerID,
-			ViewedUserID: profile.UserID,
-			ViewDate:     time.Now(),
-		}
-		if err := s.profileViewRepo.CreateProfileView(&view); err != nil {
-			return nil, fmt.Errorf("could not create profile view: %w", err)
-		}
+	view := models.ProfileView{
+		UserID:       viewerID,
+		ViewedUserID: profile.UserID,
+		ViewDate:     time.Now(),
+	}
+	if err := s.profileViewRepo.CreateProfileView(&view); err != nil {
+		return nil, fmt.Errorf("could not create profile view: %w", err)
 	}
 
-	return profiles, nil
+	return profile, nil
 }

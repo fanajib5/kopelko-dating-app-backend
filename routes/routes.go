@@ -23,7 +23,7 @@ func SetupRoutes(cfg *config.Config) *echo.Echo {
 	user := api.Group("/users", utils.AuthMiddleware)
 	profile := user.Group("/profiles", utils.AuthMiddleware)
 	profile.GET("/me", cfg.Profile.ViewMyProfile)
-	profile.GET("/random", cfg.Profile.RandomProfile)
+	profile.GET("/random", cfg.Profile.RandomProfiles)
 	user.POST("/swipe/:target_user_id", cfg.Swipe.SwipeHandler)
 	user.POST("/subscribe", cfg.Subscribe.SubscribeHandler)
 

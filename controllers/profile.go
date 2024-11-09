@@ -30,12 +30,13 @@ func (c *ProfileController) ViewMyProfile(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, profile)
 }
 
-func (c *ProfileController) RandomProfile(ctx echo.Context) error {
+func (c *ProfileController) RandomProfiles(ctx echo.Context) error {
 	viewerID := utils.GetUserIDFromContext(ctx)
-	profiles, err := c.profileService.GetRandomProfile(viewerID)
+	profiles, err := c.profileService.GetRandomProfiles(viewerID)
 	if err != nil {
-		ctx.Logger().Error(err)
-		return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Profile not found"})
+		ec, errMsg := utils.ParseErrorCodeAndMessage(err)
+		ctx.Logger().Error(errMsg)
+		return ctx.JSON(ec, map[string]string{"error": errMsg})
 	}
 
 	return ctx.JSON(http.StatusOK, profiles)

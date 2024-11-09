@@ -37,7 +37,7 @@ func (sc *SwipeController) SwipeHandler(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid swipe type"})
 	}
 
-	err = sc.swipeService.ProcessSwipe(userID, targetUserID, swipeType)
+	err = sc.swipeService.SwipeProfile(userID, targetUserID, swipeType)
 	if err != nil {
 		ctx.Logger().Error(err)
 		ec, errMsg := utils.ParseErrorCodeAndMessage(err)

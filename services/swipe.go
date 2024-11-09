@@ -13,26 +13,28 @@ import (
 )
 
 type SwipeService interface {
-	ProcessSwipe(userID uint, targetUserID int, swipeType string) error
+	SwipeProfile(userID uint, targetUserID int, swipeType string) error
 }
 
 type swipeService struct {
 	swipeRepo        repositories.SwipeRepository
 	subscriptionRepo repositories.SubscriptionRepository
+	profileViewRepo  repositories.ProfileViewRepository
 	maxSwipes        int
 }
 
 // NewSwipeService creates a new SwipeService with a maximum swipe limit
-func NewSwipeService(swipeRepo repositories.SwipeRepository, subscriptionRepo repositories.SubscriptionRepository, maxSwipes int) *swipeService {
+func NewSwipeService(swipeRepo repositories.SwipeRepository, subscriptionRepo repositories.SubscriptionRepository, profileViewRepo repositories.ProfileViewRepository, maxSwipes int) *swipeService {
 	return &swipeService{
 		swipeRepo:        swipeRepo,
 		subscriptionRepo: subscriptionRepo,
+		profileViewRepo:  profileViewRepo,
 		maxSwipes:        maxSwipes,
 	}
 }
 
-// ProcessSwipe handles the swipe logic with daily limits and swipe uniqueness
-func (s *swipeService) ProcessSwipe(userID uint, targetUserID int, swipeType string) error {
+// SwipeProfile handles the swipe logic with daily limits and swipe uniqueness
+func (s *swipeService) SwipeProfile(userID uint, targetUserID int, swipeType string) error {
 	now := time.Now()
 
 	if targetUserID < 0 {
@@ -62,16 +64,27 @@ func (s *swipeService) ProcessSwipe(userID uint, targetUserID int, swipeType str
 		return echo.NewHTTPError(http.StatusConflict, "Already swiped on this user today")
 	}
 
-	// Create the swipe
-	swipe := &models.Swipe{
+	// Set up the Swipe data
+	swipe := models.Swipe{
 		UserID:       userID,
 		TargetUserID: targetUserIDuint,
 		SwipeType:    swipeType,
-		SwipeDate:    now.Truncate(24 * time.Hour),
+		SwipeDate:    now,
 	}
 
-	err = s.swipeRepo.CreateSwipe(swipe)
-	if err != nil {
+	// Set up the ProfileView data
+	profileView := models.ProfileView{
+		UserID:       userID,
+		ViewedUserID: targetUserIDuint,
+		ViewDate:     now,
+	}
+
+	swipeAndVeiw := models.SwipeAndViewData{
+		Swipe:       swipe,
+		ProfileView: profileView,
+	}
+
+	if err = s.profileViewRepo.CreateSwipeAndView(swipeAndVeiw); err != nil {
 		return fmt.Errorf("could not create swipe: %w", err)
 	}
 	return nil
