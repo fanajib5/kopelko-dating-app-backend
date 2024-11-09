@@ -2,26 +2,28 @@ package config
 
 import (
 	"log"
+	"os"
 
-	"kopelko-dating-app-backend/controllers"
-	"kopelko-dating-app-backend/repositories"
-	"kopelko-dating-app-backend/services"
-	"kopelko-dating-app-backend/utils"
+	controller "kopelko-dating-app-backend/controllers"
+	repository "kopelko-dating-app-backend/repositories"
+	service "kopelko-dating-app-backend/services"
+	util "kopelko-dating-app-backend/utils"
 
 	"github.com/joho/godotenv"
 	"gorm.io/gorm"
 )
 
 type Config struct {
-	DB     *gorm.DB
-	JWTKey []byte
+	DB      *gorm.DB
+	JWTKey  []byte
+	APIPort string
 	Controllers
 }
 
 type Controllers struct {
-	Auth    *controllers.AuthController
-	Profile *controllers.ProfileController
-	Swipe   *controllers.SwipeController
+	Auth    *controller.AuthController
+	Profile *controller.ProfileController
+	Swipe   *controller.SwipeController
 }
 
 func New() *Config {
@@ -30,13 +32,14 @@ func New() *Config {
 	var c = new(Config)
 	c.initializeDB()
 	c.initializeControllers()
+	c.LoadAPIPort()
 
 	return c
 }
 
 // Initialize database connection
 func (c *Config) initializeDB() {
-	db, err := utils.InitDB()
+	db, err := util.InitDB()
 	if err != nil {
 		log.Fatalf("could not set up database: %v", err)
 	}
@@ -44,27 +47,31 @@ func (c *Config) initializeDB() {
 }
 
 func (c *Config) LoadJWTKey() {
-	c.JWTKey = utils.LoadJWTKey()
+	c.JWTKey = util.LoadJWTKey()
 }
 
 // Initialize controllers
 func (c *Config) initializeControllers() {
 	// Profile component
-	pfr := repositories.NewProfileRepository(c.DB)
-	pfs := services.NewProfileService(pfr)
-	c.Controllers.Profile = controllers.NewProfileController(pfs)
+	pfr := repository.NewProfileRepository(c.DB)
+	pfs := service.NewProfileService(pfr)
+	c.Controllers.Profile = controller.NewProfileController(pfs)
 
 	// User component
-	usr := repositories.NewUserRepository(c.DB)
+	usr := repository.NewUserRepository(c.DB)
 
 	// Auth component
-	aus := services.NewAuthService(usr, pfr)
-	c.Controllers.Auth = controllers.NewAuthController(aus)
+	aus := service.NewAuthService(usr, pfr)
+	c.Controllers.Auth = controller.NewAuthController(aus)
 
 	// Swipe component
-	swr := repositories.NewSwipeRepository(c.DB)
-	sws := services.NewSwipeService(swr, 10)
-	c.Controllers.Swipe = controllers.NewSwipeController(sws)
+	swr := repository.NewSwipeRepository(c.DB)
+	sws := service.NewSwipeService(swr, 10)
+	c.Controllers.Swipe = controller.NewSwipeController(sws)
+}
+
+func (c *Config) LoadAPIPort() {
+	c.APIPort = os.Getenv("API_PORT")
 }
 
 func loadEnv() {
@@ -74,6 +81,6 @@ func loadEnv() {
 	}
 }
 
-func NewValidator() *utils.CustomValidator {
-	return utils.NewValidator()
+func NewValidator() *util.CustomValidator {
+	return util.NewValidator()
 }

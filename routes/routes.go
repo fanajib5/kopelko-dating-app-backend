@@ -8,10 +8,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 )
 
-func SetupRoutes() *echo.Echo {
-	// Initialize config
-	cfg := config.New()
-
+func SetupRoutes(cfg *config.Config) *echo.Echo {
 	// Initialize Echo
 	e := echo.New()
 	e.Use(middleware.CORS())
