@@ -50,7 +50,3 @@ func LoadJWTKey() []byte {
 	jwtKey = []byte(os.Getenv("JWT_KEY"))
 	return jwtKey
 }
-
-func GetJWTKey() []byte {
-	return jwtKey
-}

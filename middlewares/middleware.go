@@ -1,17 +1,16 @@
 package utils
 
 import (
-	"kopelko-dating-app-backend/utils"
 	"net/http"
 	"strings"
 
-	"github.com/golang-jwt/jwt/v5"
+	"kopelko-dating-app-backend/utils"
+
 	"github.com/labstack/echo/v4"
 )
 
 // AuthMiddleware is a middleware function that validates the JWT token
 func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	jwtKey := utils.GetJWTKey()
 	return func(ctx echo.Context) error {
 		ctx.Logger().Print("Authenticating user...")
 
@@ -29,13 +28,9 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		tokenStr := parts[1]
 
 		// Parse and validate the JWT token
-		claims := &utils.Claims{}
-		token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
-			return jwtKey, nil
-		})
-
-		if err != nil || !token.Valid {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid or expired token"})
+		claims, err := utils.ParseJWT(tokenStr)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid token"})
 		}
 
 		// Token is valid; attach user information to the context
