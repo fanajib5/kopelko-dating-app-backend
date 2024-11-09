@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	model "kopelko-dating-app-backend/models"
 	repository "kopelko-dating-app-backend/repositories"
 )
@@ -18,5 +19,9 @@ func NewProfileService(profileRepo repository.ProfileRepository) *profileService
 }
 
 func (s *profileService) GetProfileByID(id string) (*model.Profile, error) {
-	return s.profileRepo.FindByID(id)
+	profile, err := s.profileRepo.FindByID(id)
+	if err != nil {
+		return nil, fmt.Errorf("could not get profile: %w", err)
+	}
+	return profile, nil
 }
