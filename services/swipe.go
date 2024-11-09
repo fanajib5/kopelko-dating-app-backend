@@ -48,11 +48,13 @@ func (s *swipeService) ProcessSwipe(userID uint, targetUserID int, swipeType str
 
 	// Allow unlimited swipes if user is premium
 	if !hasUnlimitedSwipes {
-		return s.checkDailySwipes(userID, now)
+		if err := s.checkDailySwipes(userID, now); err != nil {
+			return fmt.Errorf("could not check daily swipes: %w", err)
+		}
 	}
 
 	// Check if the user has already swiped on this target today
-	hasSwiped, err := s.swipeRepo.HasSwipedToday(userID, targetUserIDuint, time.Now().Truncate(24*time.Hour))
+	hasSwiped, err := s.swipeRepo.HasSwipedToday(userID, targetUserIDuint, now.Truncate(24*time.Hour))
 	if err != nil {
 		return fmt.Errorf("could not check if user has swiped: %w", err)
 	}
