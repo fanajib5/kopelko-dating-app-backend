@@ -17,10 +17,10 @@ type Profile struct {
 	Bio           string         `json:"bio" gorm:"column:bio"`
 	Gender        string         `json:"gender" gorm:"column:gender"`
 	Location      string         `json:"location" gorm:"column:location"`
-	Interests     []string       `json:"interests" gorm:"column:interests"`
+	Interests     []string       `json:"interests" gorm:"type:text[]column:interests"`
 	Photos        []string       `json:"photos" gorm:"type:text[];column:photos"`
 	IsPremium     bool           `json:"is_premium" gorm:"default:false;column:is_premium"`
-	VerifiedLabel bool           `json:"verified_label" gorm:"default:false;column:verified_label"`
+	VerifiedLabel bool           `json:"verified_label" gorm:"-"`
 }
 
 func (Profile) TableName() string {
