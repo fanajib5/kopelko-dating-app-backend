@@ -102,7 +102,9 @@ Kopelko-Dating-App/
 │   ├── login_request.go        # DTO for login request validation
 │   └── register_request.go     # DTO for register request validation
 ├── middlewares/                # Custom middleware functions for the app
-│   └── middleware.go           # Authentication and logging middleware setup
+│   ├── httphelper.go           # Helper functions for HTTP responses
+│   ├── middleware.go           # Authentication and logging middleware setup
+│   └── validator.go            # Custom validator functions
 ├── models/                     # Defines database schemas using GORM models
 │   ├── premium_feature.go      # Premium feature model
 │   ├── profile.go              # Profile model
@@ -129,9 +131,7 @@ Kopelko-Dating-App/
 │   └── Kopelko_Dating_App.postman_collection.json  # Postman tests for API endpoints
 └── utils/                      # Utility functions for the app
     ├── db.go                   # Database connection setup
-    ├── httphelper.go           # Helper functions for HTTP responses
-    ├── jwt.go                  # JWT token generation and verification
-    └── validator.go            # Custom validator functions
+    └── jwt.go                  # JWT token generation and verification
 ```
 
 ### Explanation of Key Components
@@ -170,7 +170,7 @@ Kopelko-Dating-App/
 The tests folder contains resources and tools for testing, including Postman collections for automated API testing.
 
 - **Utilities**:
-  Shared functions, such as database initialization (`db.go`), token management (`jwt.go`), HTTP response helpers (`httphelper.go`), and custom validators (`validator.go`), are here to avoid duplicating code.
+  Shared functions, such as database initialization (`db.go`) and token management (`jwt.go`).
 
 ## Testing
 
