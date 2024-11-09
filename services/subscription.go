@@ -38,11 +38,11 @@ func (s *subscriptionService) SubscribeUser(userID uint, featureID int) error {
 	}
 
 	// Check if user has an active subscription
-	isSubcsribed, err := s.subscriptionRepo.GetActiveSubscription(userID)
+	existingSubscription, err := s.subscriptionRepo.GetActiveSubscription(userID)
 	if err != nil {
 		return fmt.Errorf("could not get active subscription: %w", err)
 	}
-	if isSubcsribed == true {
+	if existingSubscription != nil {
 		return errors.New("user already has an active subscription")
 	}
 

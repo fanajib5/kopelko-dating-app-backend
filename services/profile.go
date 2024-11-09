@@ -30,9 +30,12 @@ func (s *profileService) GetProfileByID(id string) (*models.Profile, error) {
 	}
 
 	// Check if user has an active subscription
-	profile.IsPremium, err = s.subscriptionRepo.GetActiveSubscription(profile.UserID)
+	subscription, err := s.subscriptionRepo.GetActiveSubscription(profile.UserID)
 	if err != nil {
 		return nil, fmt.Errorf("could not get active subscription: %w", err)
+	}
+	if subscription != nil {
+		profile.IsPremium = true
 	}
 
 	// Check if user has verified label subscription

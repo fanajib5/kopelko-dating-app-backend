@@ -11,7 +11,7 @@ import (
 type SubscriptionRepository interface {
 	CreateSubscriptionTx(tx *gorm.DB, subscription *models.Subscription) error
 	HasFeature(userID uint, featureName string) (bool, error)
-	GetActiveSubscription(userID uint) (bool, error)
+	GetActiveSubscription(userID uint) (*models.Subscription, error)
 }
 
 type subscriptionRepo struct {
@@ -37,14 +37,14 @@ func (r *subscriptionRepo) HasFeature(userID uint, featureName string) (bool, er
 }
 
 // GetActiveSubscription checks if a user has an active subscription
-func (r *subscriptionRepo) GetActiveSubscription(userID uint) (bool, error) {
-	var count int64
-	err := r.db.Where("user_id = ? AND end_date > ?", userID, true, time.Now()).Count(&count).Error
+func (r *subscriptionRepo) GetActiveSubscription(userID uint) (*models.Subscription, error) {
+	var subscription models.Subscription
+	err := r.db.Where("user_id = ? AND end_date > ?", userID, time.Now()).First(&subscription).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return false, nil
+			return nil, nil
 		}
-		return false, err
+		return nil, err
 	}
-	return count > 0, nil
+	return &subscription, nil
 }
