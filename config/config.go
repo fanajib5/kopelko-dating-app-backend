@@ -53,29 +53,23 @@ func (c *Config) LoadJWTKey() {
 
 // Initialize controllers
 func (c *Config) initializeControllers() {
-	// Profile component
-	pfr := repository.NewProfileRepository(c.DB)
-	pfs := service.NewProfileService(pfr)
-	c.Controllers.Profile = controller.NewProfileController(pfs)
-
-	// User component
+	// Repository components
 	usr := repository.NewUserRepository(c.DB)
-
-	// Auth component
-	aus := service.NewAuthService(usr, pfr)
-	c.Controllers.Auth = controller.NewAuthController(aus)
-
-	// Premium Feature component
+	pfr := repository.NewProfileRepository(c.DB)
 	pmr := repository.NewPremiumFeatureRepository(c.DB)
-
-	// Subscribe component
 	sbr := repository.NewSubscriptionRepository(c.DB)
-	sbs := service.NewSubscriptionService(sbr, pmr)
-	c.Controllers.Subscribe = controller.NewSubscriptionController(sbs)
-
-	// Swipe component
 	swr := repository.NewSwipeRepository(c.DB)
+
+	// Service components
+	pfs := service.NewProfileService(pfr, sbr)
+	aus := service.NewAuthService(usr, pfr)
+	sbs := service.NewSubscriptionService(sbr, pmr)
 	sws := service.NewSwipeService(swr, sbr, 10)
+
+	// Controller components
+	c.Controllers.Profile = controller.NewProfileController(pfs)
+	c.Controllers.Auth = controller.NewAuthController(aus)
+	c.Controllers.Subscribe = controller.NewSubscriptionController(sbs)
 	c.Controllers.Swipe = controller.NewSwipeController(sws)
 }
 
