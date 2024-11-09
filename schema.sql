@@ -1,7 +1,7 @@
 -- Create enum types
 -- run this command once to create the enum types
 CREATE TYPE gender_enum AS ENUM ('male', 'female', 'other');
-CREATE TYPE swipe_type_enum AS ENUM ('left', 'right');
+CREATE TYPE swipe_type_enum AS ENUM ('pass', 'like');
 CREATE TYPE payment_status_enum AS ENUM ('completed', 'pending');
 CREATE TYPE payment_provider_enum AS ENUM ('stripe', 'xendit');
 

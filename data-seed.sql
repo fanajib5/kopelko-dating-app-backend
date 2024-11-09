@@ -15,7 +15,7 @@ VALUES(4, 'some.one2@mail.com', '$2a$10$OMg0Zw19IF/MI8928E0yveSMc4KcRKJm3XQEMTxe
 
 INSERT INTO public.swipes
 (id, user_id, target_user_id, swipe_type, swipe_date)
-VALUES(1, 1, 3, 'left', '2024-11-08');
+VALUES(1, 1, 3, 'pass', '2024-11-08');
 INSERT INTO public.swipes
 (id, user_id, target_user_id, swipe_type, swipe_date)
 VALUES(2, 1, 4, 'right', '2024-11-08');

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	model "kopelko-dating-app-backend/models"
 	service "kopelko-dating-app-backend/services"
 	util "kopelko-dating-app-backend/utils"
 
@@ -31,8 +32,8 @@ func (sc *SwipeController) SwipeHandler(ctx echo.Context) error {
 	}
 
 	swipeType := ctx.QueryParam("type")
-	if swipeType != "left" && swipeType != "right" {
-		ctx.Logger().Error(errors.New("Invalid swipe type, must be 'left' or 'right'"))
+	if swipeType != model.SwipeTypePass && swipeType != model.SwipeTypeLike {
+		ctx.Logger().Error(errors.New("Invalid swipe type, must be 'pass' or 'like'"))
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid swipe type"})
 	}
 
