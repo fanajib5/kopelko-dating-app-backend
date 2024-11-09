@@ -21,9 +21,10 @@ type Config struct {
 }
 
 type Controllers struct {
-	Auth    *controller.AuthController
-	Profile *controller.ProfileController
-	Swipe   *controller.SwipeController
+	Auth      *controller.AuthController
+	Profile   *controller.ProfileController
+	Swipe     *controller.SwipeController
+	Subscribe *controller.SubscriptionController
 }
 
 func New() *Config {
@@ -68,6 +69,14 @@ func (c *Config) initializeControllers() {
 	swr := repository.NewSwipeRepository(c.DB)
 	sws := service.NewSwipeService(swr, 10)
 	c.Controllers.Swipe = controller.NewSwipeController(sws)
+
+	// Premium Feature component
+	pmr := repository.NewPremiumFeatureRepository(c.DB)
+
+	// Subscribe component
+	sbr := repository.NewSubscriptionRepository(c.DB)
+	sbs := service.NewSubscriptionService(sbr, pmr)
+	c.Controllers.Subscribe = controller.NewSubscriptionController(sbs)
 }
 
 func (c *Config) LoadAPIPort() {

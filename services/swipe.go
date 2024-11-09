@@ -13,21 +13,26 @@ import (
 )
 
 type SwipeService interface {
-	ProcessSwipe(userID uint, targetUserID int, swipeType string, isPremium bool) error
+	ProcessSwipe(userID uint, targetUserID int, swipeType string) error
 }
 
 type swipeService struct {
-	swipeRepo repository.SwipeRepository
-	maxSwipes int
+	swipeRepo        repository.SwipeRepository
+	subscriptionRepo repository.SubscriptionRepository
+	maxSwipes        int
 }
 
 // NewSwipeService creates a new SwipeService with a maximum swipe limit
-func NewSwipeService(repo repository.SwipeRepository, maxSwipes int) *swipeService {
-	return &swipeService{swipeRepo: repo, maxSwipes: maxSwipes}
+func NewSwipeService(swipeRepo repository.SwipeRepository, subscriptionRepo repository.SubscriptionRepository, maxSwipes int) *swipeService {
+	return &swipeService{
+		swipeRepo:        swipeRepo,
+		subscriptionRepo: subscriptionRepo,
+		maxSwipes:        maxSwipes,
+	}
 }
 
 // ProcessSwipe handles the swipe logic with daily limits and swipe uniqueness
-func (s *swipeService) ProcessSwipe(userID uint, targetUserID int, swipeType string, isPremium bool) error {
+func (s *swipeService) ProcessSwipe(userID uint, targetUserID int, swipeType string) error {
 	now := time.Now()
 
 	if targetUserID < 0 {
@@ -35,8 +40,14 @@ func (s *swipeService) ProcessSwipe(userID uint, targetUserID int, swipeType str
 	}
 	targetUserIDuint := uint(targetUserID)
 
+	// Check if the user has an active subscription with "no_swipe_quota" feature
+	hasUnlimitedSwipes, err := s.subscriptionRepo.HasFeature(userID, model.FeatureNameNoSwipeQuota)
+	if err != nil {
+		return err
+	}
+
 	// Allow unlimited swipes if user is premium
-	if !isPremium {
+	if !hasUnlimitedSwipes {
 		// Check daily swipe count
 		today := now.Truncate(24 * time.Hour)
 		count, err := s.swipeRepo.GetDailySwipes(userID, today)
