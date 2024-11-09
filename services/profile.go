@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"time"
 
 	"kopelko-dating-app-backend/models"
 	"kopelko-dating-app-backend/repositories"
@@ -9,18 +10,22 @@ import (
 
 type ProfileService interface {
 	GetProfileByID(id uint) (*models.Profile, error)
-	GetRandomProfile() (*models.Profile, error)
+	GetRandomProfile(viewerID uint) (*models.Profile, error)
 }
 
 type profileService struct {
 	profileRepo      repositories.ProfileRepository
+	profileViewRepo  repositories.ProfileViewRepository
 	subscriptionRepo repositories.SubscriptionRepository
+	limitView        int
 }
 
-func NewProfileService(profileRepo repositories.ProfileRepository, subscriptionRepo repositories.SubscriptionRepository) *profileService {
+func NewProfileService(profileRepo repositories.ProfileRepository, profileViewRepo repositories.ProfileViewRepository, subscriptionRepo repositories.SubscriptionRepository, limitView int) *profileService {
 	return &profileService{
 		profileRepo:      profileRepo,
+		profileViewRepo:  profileViewRepo,
 		subscriptionRepo: subscriptionRepo,
+		limitView:        limitView,
 	}
 }
 
@@ -30,19 +35,6 @@ func (s *profileService) GetProfileByID(id uint) (*models.Profile, error) {
 		return nil, fmt.Errorf("could not get profile: %w", err)
 	}
 
-	return s.getProfile(profile)
-}
-
-func (s *profileService) GetRandomProfile() (*models.Profile, error) {
-	profile, err := s.profileRepo.FindRandom()
-	if err != nil {
-		return nil, fmt.Errorf("could not get random profile: %w", err)
-	}
-
-	return s.getProfile(profile)
-}
-
-func (s *profileService) getProfile(profile *models.Profile) (*models.Profile, error) {
 	// Check if user has an active subscription
 	subscription, err := s.subscriptionRepo.GetActiveSubscription(profile.UserID)
 	if err != nil {
@@ -60,4 +52,31 @@ func (s *profileService) getProfile(profile *models.Profile) (*models.Profile, e
 
 	profile.VerifiedLabel = hasVerifiedLabel
 	return profile, nil
+}
+
+func (s *profileService) GetRandomProfile(viewerID uint) ([]models.Profile, error) {
+	// Get profiles the user hasn’t viewed today, limited to 10
+	profiles, err := s.profileViewRepo.GetUnviewedProfiles(viewerID, s.limitView)
+	if err != nil {
+		return nil, fmt.Errorf("could not get unviewed profiles: %w", err)
+	}
+
+	// If there are no profiles to view, return an error
+	if profiles == nil {
+		return nil, fmt.Errorf("no profiles to view, you've reached the limit to view profiles today")
+	}
+
+	// Log views in the `profile_views` table
+	for _, profile := range profiles {
+		view := models.ProfileView{
+			UserID:       viewerID,
+			ViewedUserID: profile.UserID,
+			ViewDate:     time.Now(),
+		}
+		if err := s.profileViewRepo.CreateProfileView(&view); err != nil {
+			return nil, fmt.Errorf("could not create profile view: %w", err)
+		}
+	}
+
+	return profiles, nil
 }

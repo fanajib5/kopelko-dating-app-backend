@@ -31,7 +31,8 @@ func (c *ProfileController) ViewMyProfile(ctx echo.Context) error {
 }
 
 func (c *ProfileController) RandomProfile(ctx echo.Context) error {
-	profile, err := c.profileService.GetRandomProfile()
+	viewerID := utils.GetUserIDFromContext(ctx)
+	profile, err := c.profileService.GetRandomProfile(viewerID)
 	if err != nil {
 		ctx.Logger().Error(err)
 		return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Profile not found"})

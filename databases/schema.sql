@@ -66,14 +66,15 @@ CREATE TABLE subscriptions (
     auto_renew BOOLEAN DEFAULT TRUE
 );
 
-CREATE TABLE payments (
+CREATE TABLE profile_views (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    amount DECIMAL(10, 2) NOT NULL CHECK (amount > 0),
-    currency VARCHAR(10) DEFAULT 'USD',
-    payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    payment_status payment_status_enum,
-    payment_provider payment_provider_enum
+    viewed_user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    view_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    UNIQUE (user_id, viewed_user_id, view_date)  -- Ensures no duplicate views on the same day
 );
 
 -- Indexes for faster searches by user ID

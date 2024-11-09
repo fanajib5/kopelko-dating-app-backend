@@ -75,9 +75,10 @@ func (c *Config) initializeControllers() {
 	pmr := repositories.NewPremiumFeatureRepository(c.DB)
 	sbr := repositories.NewSubscriptionRepository(c.DB)
 	swr := repositories.NewSwipeRepository(c.DB)
+	pvr := repositories.NewProfileViewRepository(c.DB)
 
 	// Service components
-	pfs := services.NewProfileService(pfr, sbr)
+	pfs := services.NewProfileService(pfr, pvr, sbr, c.LimitSwipe)
 	aus := services.NewAuthService(usr, pfr)
 	sbs := services.NewSubscriptionService(sbr, pmr, pfr)
 	sws := services.NewSwipeService(swr, sbr, c.LimitSwipe)
