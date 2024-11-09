@@ -39,7 +39,6 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		// Token is valid; attach user information to the context
 		c.Set("user_id", claims.UserID)
 		c.Set("user_email", claims.Email)
-		c.Set("is_premium", claims.IsPremium)
 
 		// Proceed to the next handler
 		return next(c)

@@ -37,7 +37,9 @@ CREATE TABLE swipes (
     target_user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     swipe_type swipe_type_enum,
     swipe_date DATE NOT NULL DEFAULT CURRENT_DATE,
-    UNIQUE(user_id, target_user_id, swipe_date)  -- Prevents duplicate swipes on the same day
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP
 );
 
 CREATE TABLE matches (
