@@ -23,11 +23,6 @@ func NewSwipeController(swipeService service.SwipeService) *SwipeController {
 // SwipeHandler processes swipe requests
 func (sc *SwipeController) SwipeHandler(ctx echo.Context) error {
 	userID := ctx.Get("user_id").(uint)
-	isPremium, ok := ctx.Get("is_premium").(bool)
-	if !ok {
-		ctx.Logger().Error(errors.New("Could not get user premium status"))
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not get user premium status"})
-	}
 
 	targetUserID, err := strconv.Atoi(ctx.Param("target_user_id"))
 	if err != nil {
@@ -41,7 +36,7 @@ func (sc *SwipeController) SwipeHandler(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid swipe type"})
 	}
 
-	err = sc.swipeService.ProcessSwipe(userID, targetUserID, swipeType, isPremium)
+	err = sc.swipeService.ProcessSwipe(userID, targetUserID, swipeType)
 	if err != nil {
 		ctx.Logger().Error(err)
 		ec, errMsg := util.ParseErrorCodeAndMessage(err)

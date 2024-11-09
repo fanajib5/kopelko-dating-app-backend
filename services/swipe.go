@@ -43,20 +43,12 @@ func (s *swipeService) ProcessSwipe(userID uint, targetUserID int, swipeType str
 	// Check if the user has an active subscription with "no_swipe_quota" feature
 	hasUnlimitedSwipes, err := s.subscriptionRepo.HasFeature(userID, model.FeatureNameNoSwipeQuota)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not check user subscription: %w", err)
 	}
 
 	// Allow unlimited swipes if user is premium
 	if !hasUnlimitedSwipes {
-		// Check daily swipe count
-		today := now.Truncate(24 * time.Hour)
-		count, err := s.swipeRepo.GetDailySwipes(userID, today)
-		if err != nil {
-			return fmt.Errorf("could not get daily swipes: %w", err)
-		}
-		if count >= int64(s.maxSwipes) {
-			return echo.NewHTTPError(http.StatusForbidden, "Swipe limit reached for today")
-		}
+		return s.checkDailySwipes(userID, now)
 	}
 
 	// Check if the user has already swiped on this target today
@@ -75,5 +67,23 @@ func (s *swipeService) ProcessSwipe(userID uint, targetUserID int, swipeType str
 		SwipeType:    swipeType,
 		SwipeDate:    now.Truncate(24 * time.Hour),
 	}
-	return s.swipeRepo.CreateSwipe(swipe)
+
+	err = s.swipeRepo.CreateSwipe(swipe)
+	if err != nil {
+		return fmt.Errorf("could not create swipe: %w", err)
+	}
+	return nil
+}
+
+// Check daily swipe count
+func (s *swipeService) checkDailySwipes(userID uint, now time.Time) error {
+	today := now.Truncate(24 * time.Hour)
+	count, err := s.swipeRepo.GetDailySwipes(userID, today)
+	if err != nil {
+		return fmt.Errorf("could not get daily swipes: %w", err)
+	}
+	if count >= int64(s.maxSwipes) {
+		return echo.NewHTTPError(http.StatusForbidden, "Swipe limit reached for today")
+	}
+	return nil
 }

@@ -65,11 +65,6 @@ func (c *Config) initializeControllers() {
 	aus := service.NewAuthService(usr, pfr)
 	c.Controllers.Auth = controller.NewAuthController(aus)
 
-	// Swipe component
-	swr := repository.NewSwipeRepository(c.DB)
-	sws := service.NewSwipeService(swr, 10)
-	c.Controllers.Swipe = controller.NewSwipeController(sws)
-
 	// Premium Feature component
 	pmr := repository.NewPremiumFeatureRepository(c.DB)
 
@@ -77,6 +72,11 @@ func (c *Config) initializeControllers() {
 	sbr := repository.NewSubscriptionRepository(c.DB)
 	sbs := service.NewSubscriptionService(sbr, pmr)
 	c.Controllers.Subscribe = controller.NewSubscriptionController(sbs)
+
+	// Swipe component
+	swr := repository.NewSwipeRepository(c.DB)
+	sws := service.NewSwipeService(swr, sbr, 10)
+	c.Controllers.Swipe = controller.NewSwipeController(sws)
 }
 
 func (c *Config) LoadAPIPort() {
