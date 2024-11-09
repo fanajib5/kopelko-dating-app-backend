@@ -4,16 +4,16 @@ import (
 	"net/http"
 	"strconv"
 
-	service "kopelko-dating-app-backend/services"
+	"kopelko-dating-app-backend/services"
 
 	"github.com/labstack/echo/v4"
 )
 
 type SubscriptionController struct {
-	subscriptionService service.SubscriptionService
+	subscriptionService services.SubscriptionService
 }
 
-func NewSubscriptionController(service service.SubscriptionService) *SubscriptionController {
+func NewSubscriptionController(service services.SubscriptionService) *SubscriptionController {
 	return &SubscriptionController{subscriptionService: service}
 }
 

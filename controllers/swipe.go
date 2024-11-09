@@ -5,19 +5,19 @@ import (
 	"net/http"
 	"strconv"
 
-	model "kopelko-dating-app-backend/models"
-	service "kopelko-dating-app-backend/services"
-	util "kopelko-dating-app-backend/utils"
+	"kopelko-dating-app-backend/models"
+	"kopelko-dating-app-backend/services"
+	"kopelko-dating-app-backend/utils"
 
 	"github.com/labstack/echo/v4"
 )
 
 type SwipeController struct {
-	swipeService service.SwipeService
+	swipeService services.SwipeService
 }
 
 // NewSwipeController creates a new SwipeController
-func NewSwipeController(swipeService service.SwipeService) *SwipeController {
+func NewSwipeController(swipeService services.SwipeService) *SwipeController {
 	return &SwipeController{swipeService: swipeService}
 }
 
@@ -32,7 +32,7 @@ func (sc *SwipeController) SwipeHandler(ctx echo.Context) error {
 	}
 
 	swipeType := ctx.QueryParam("type")
-	if swipeType != model.SwipeTypePass && swipeType != model.SwipeTypeLike {
+	if swipeType != models.SwipeTypePass && swipeType != models.SwipeTypeLike {
 		ctx.Logger().Error(errors.New("Invalid swipe type, must be 'pass' or 'like'"))
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid swipe type"})
 	}
@@ -40,7 +40,7 @@ func (sc *SwipeController) SwipeHandler(ctx echo.Context) error {
 	err = sc.swipeService.ProcessSwipe(userID, targetUserID, swipeType)
 	if err != nil {
 		ctx.Logger().Error(err)
-		ec, errMsg := util.ParseErrorCodeAndMessage(err)
+		ec, errMsg := utils.ParseErrorCodeAndMessage(err)
 		return ctx.JSON(ec, map[string]string{"error": errMsg})
 	}
 
