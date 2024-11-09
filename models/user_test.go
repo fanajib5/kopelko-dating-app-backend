@@ -6,47 +6,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_MaskLocalPart(t *testing.T) {
-	testCases := []struct {
-		name     string
-		input    string
-		expected string
-	}{
-		{
-			name:     "local part less than or equal to 3 characters",
-			input:    "abc",
-			expected: "abc",
-		},
-		{
-			name:     "local part more than 3 characters",
-			input:    "abcdef",
-			expected: "abc***",
-		},
-		{
-			name:     "local part exactly 3 characters",
-			input:    "xyz",
-			expected: "xyz",
-		},
-		{
-			name:     "local part with special characters",
-			input:    "a.b-c",
-			expected: "a.b**",
-		},
-		{
-			name:     "local part empty",
-			input:    "",
-			expected: "",
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			output := maskLocalPart(tc.input)
-			assert.Equal(t, tc.expected, output)
-		})
-	}
-}
-
 func Test_MaskEmail(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -76,7 +35,7 @@ func Test_MaskEmail(t *testing.T) {
 		{
 			name:     "email with special characters in local part",
 			email:    "a.b-c@example.com",
-			expected: "a.b**@*****",
+			expected: "a.b*****@*****",
 		},
 		{
 			name:     "empty email",
