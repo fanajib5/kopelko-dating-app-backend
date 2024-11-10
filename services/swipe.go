@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -37,6 +38,8 @@ func NewSwipeService(swipeRepo repositories.SwipeRepository, subscriptionRepo re
 func (s *swipeService) SwipeProfile(userID uint, targetUserID int, swipeType string) error {
 	now := time.Now()
 
+	log.Printf("Attempting to swipe an user with userID: %d, targetUserID: %d, swipeType: %s", userID, targetUserID, swipeType)
+
 	if targetUserID < 0 {
 		return errors.New("invalid target user ID")
 	}
@@ -64,6 +67,7 @@ func (s *swipeService) SwipeProfile(userID uint, targetUserID int, swipeType str
 		return echo.NewHTTPError(http.StatusConflict, "Already swiped on this user today")
 	}
 
+	log.Println("Creating swipe and profile view data")
 	// Set up the Swipe data
 	swipe := models.Swipe{
 		UserID:       userID,
@@ -87,11 +91,13 @@ func (s *swipeService) SwipeProfile(userID uint, targetUserID int, swipeType str
 	if err = s.profileViewRepo.CreateSwipeAndView(swipeAndVeiw); err != nil {
 		return fmt.Errorf("could not create swipe: %w", err)
 	}
+
 	return nil
 }
 
 // Check daily swipe count
 func (s *swipeService) checkDailySwipes(userID uint, now time.Time) error {
+	log.Println("Checking daily swipes limit for user:", userID)
 	today := now.Truncate(24 * time.Hour)
 	count, err := s.swipeRepo.GetDailySwipes(userID, today)
 	if err != nil {
