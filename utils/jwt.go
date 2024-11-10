@@ -2,7 +2,6 @@ package utils
 
 import (
 	"fmt"
-	"kopelko-dating-app-backend/models"
 	"os"
 	"time"
 
@@ -17,11 +16,11 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-func GenerateJWT(user models.User) (string, error) {
+func GenerateJWT(userID uint, email string) (string, error) {
 	expirationTime := time.Now().Add(15 * time.Minute)
 	claims := &Claims{
-		UserID: user.ID,
-		Email:  user.Email,
+		UserID: userID,
+		Email:  email,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    "kopelko-dating-app-backend",
 			ExpiresAt: jwt.NewNumericDate(expirationTime),

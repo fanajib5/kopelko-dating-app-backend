@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
@@ -36,7 +37,7 @@ func getErrorMessage(fieldError validator.FieldError) string {
 
 // GetValidationError handles validation errors
 func GetValidationError(ctx echo.Context, err error) map[string]string {
-
+	log.Println("Getting validation error")
 	// Get detailed validation error messages
 	validationErrors := err.(validator.ValidationErrors)
 	errors := make(map[string]string)

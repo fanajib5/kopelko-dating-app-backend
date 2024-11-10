@@ -1,7 +1,9 @@
 package services
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 
 	"kopelko-dating-app-backend/dto"
 	"kopelko-dating-app-backend/models"
@@ -26,6 +28,12 @@ func NewAuthService(userRepo repositories.UserRepository, profileRepo repositori
 }
 
 func (s *authService) RegisterUser(req *dto.RegisterRequest) (*models.User, error) {
+	tempReq := *req
+	tempReq.Password = "******"
+	tempReq.Email = utils.MaskEmail(tempReq.Email)
+	reqJSON, _ := json.Marshal(tempReq)
+	log.Printf("RegisterUser request: %s\n", string(reqJSON))
+
 	hashedPwd, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, fmt.Errorf("could not hash password: %w", err)
@@ -89,7 +97,7 @@ func (s *authService) LoginUser(req *dto.LoginRequest) (*models.User, error) {
 }
 
 func (s *authService) generateToken(user *models.User) (string, error) {
-	token, err := utils.GenerateJWT(*user)
+	token, err := utils.GenerateJWT(user.ID, user.Email)
 	if err != nil {
 		return "", fmt.Errorf("could not generate token: %w", err)
 	}

@@ -6,8 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"kopelko-dating-app-backend/models"
-
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -23,12 +21,10 @@ func Test_utils_LoadJWTKey(t *testing.T) {
 
 func Test_utils_GenerateJWT(t *testing.T) {
 	LoadJWTKey()
-	user := models.User{
-		ID:    1,
-		Email: "test@example.com",
-	}
+	var userID uint = 1
+	var email string = "test@example.com"
 
-	tokenString, err := GenerateJWT(user)
+	tokenString, err := GenerateJWT(userID, email)
 	require.NoError(t, err)
 
 	claims := &Claims{}
@@ -38,27 +34,25 @@ func Test_utils_GenerateJWT(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.True(t, token.Valid)
-	assert.Equal(t, user.ID, claims.UserID)
-	assert.Equal(t, user.Email, claims.Email)
+	assert.Equal(t, userID, claims.UserID)
+	assert.Equal(t, email, claims.Email)
 	assert.Equal(t, "kopelko-dating-app-backend", claims.Issuer)
 	assert.True(t, claims.ExpiresAt.Time.After(time.Now()))
 }
 
 func Test_utils_ParseJWT(t *testing.T) {
 	LoadJWTKey()
-	user := models.User{
-		ID:    1,
-		Email: "test@example.com",
-	}
+	var userID uint = 1
+	var email string = "test@example.com"
 
-	tokenString, err := GenerateJWT(user)
+	tokenString, err := GenerateJWT(userID, email)
 	require.NoError(t, err)
 
 	claims, err := ParseJWT(tokenString)
 	require.NoError(t, err)
 
-	assert.Equal(t, user.ID, claims.UserID)
-	assert.Equal(t, user.Email, claims.Email)
+	assert.Equal(t, userID, claims.UserID)
+	assert.Equal(t, email, claims.Email)
 	assert.Equal(t, "kopelko-dating-app-backend", claims.Issuer)
 	assert.True(t, claims.ExpiresAt.Time.After(time.Now()))
 }

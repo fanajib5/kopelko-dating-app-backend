@@ -1,8 +1,9 @@
 package models
 
 import (
-	"strings"
 	"time"
+
+	"kopelko-dating-app-backend/utils"
 
 	"gorm.io/gorm"
 )
@@ -30,16 +31,5 @@ func (u *User) MaskEmail() string {
 		return ""
 	}
 
-	parts := strings.Split(u.Email, "@")
-	if len(parts) != 2 {
-		// return the original email if it doesn't have exactly one '@' character
-		return u.Email
-	}
-	local := parts[0]
-	if len(local) <= 3 {
-		return local + "@*****"
-	}
-
-	maskedLocal := local[:3] + strings.Repeat("*", 5)
-	return maskedLocal + "@*****"
+	return utils.MaskEmail(u.Email)
 }

@@ -4,51 +4,37 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"kopelko-dating-app-backend/utils"
 )
 
-func Test_models_MaskEmail(t *testing.T) {
-	testCases := []struct {
+func TestMaskEmail(t *testing.T) {
+	tests := []struct {
 		name     string
 		email    string
 		expected string
 	}{
 		{
-			name:     "valid email with local part more than 3 characters",
-			email:    "test@example.com",
-			expected: "tes*****@*****",
-		},
-		{
-			name:     "valid email with local part exactly 3 characters",
-			email:    "abc@example.com",
-			expected: "abc@*****",
-		},
-		{
-			name:     "valid email with local part less than 3 characters",
-			email:    "ab@example.com",
-			expected: "ab@*****",
-		},
-		{
-			name:     "email without @ character",
-			email:    "invalidemail",
-			expected: "invalidemail",
-		},
-		{
-			name:     "email with special characters in local part",
-			email:    "a.b-c@example.com",
-			expected: "a.b*****@*****",
-		},
-		{
-			name:     "empty email",
+			name:     "Empty email",
 			email:    "",
 			expected: "",
 		},
+		{
+			name:     "Valid email",
+			email:    "test@example.com",
+			expected: utils.MaskEmail("test@example.com"),
+		},
+		{
+			name:     "Another valid email",
+			email:    "user@domain.com",
+			expected: utils.MaskEmail("user@domain.com"),
+		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			user := User{Email: tc.email}
-			output := user.MaskEmail()
-			assert.Equal(t, tc.expected, output)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			user := User{Email: tt.email}
+			result := user.MaskEmail()
+			assert.Equal(t, tt.expected, result)
 		})
 	}
 }

@@ -5,7 +5,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"kopelko-dating-app-backend/models"
 	"kopelko-dating-app-backend/utils"
 
 	"github.com/labstack/echo/v4"
@@ -16,7 +15,9 @@ import (
 func Test_middlewares_AuthMiddleware(t *testing.T) {
 	e := echo.New()
 	mockToken := func() string {
-		token, err := utils.GenerateJWT(models.User{ID: 1, Email: "test@xample.com"})
+		var userID uint = 1
+		var email string = "test@example.com"
+		token, err := utils.GenerateJWT(userID, email)
 		if err != nil {
 			t.Fatal(err)
 		}
