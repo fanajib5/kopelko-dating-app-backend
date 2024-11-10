@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"kopelko-dating-app-backend/models"
@@ -30,12 +31,15 @@ func NewProfileService(profileRepo repositories.ProfileRepository, profileViewRe
 }
 
 func (s *profileService) GetProfileByID(id uint) (*models.Profile, error) {
+	log.Println("Getting profile by ID:", id)
+
 	profile, err := s.profileRepo.FindByID(id)
 	if err != nil {
 		return nil, fmt.Errorf("could not get profile: %w", err)
 	}
 
 	// Check if user has an active subscription
+	log.Println("Checking if user has an active subscription")
 	subscription, err := s.subscriptionRepo.GetActiveSubscription(profile.UserID)
 	if err != nil {
 		return nil, fmt.Errorf("could not get active subscription: %w", err)
@@ -47,7 +51,7 @@ func (s *profileService) GetProfileByID(id uint) (*models.Profile, error) {
 	// Check if user has verified label subscription
 	hasVerifiedLabel, err := s.subscriptionRepo.HasFeature(profile.UserID, models.FeatureNameVerifiedLabel)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not check if user has verified label: %w", err)
 	}
 
 	profile.VerifiedLabel = hasVerifiedLabel
@@ -55,6 +59,8 @@ func (s *profileService) GetProfileByID(id uint) (*models.Profile, error) {
 }
 
 func (s *profileService) GetRandomProfiles(viewerID uint) (*models.Profile, error) {
+	log.Println("Getting random profiles with viewer ID:", viewerID)
+
 	profile, err := s.profileViewRepo.GetUnviewedProfiles(viewerID)
 	if err != nil {
 		return nil, fmt.Errorf("could not get unviewed profiles: %w", err)
