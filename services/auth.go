@@ -39,6 +39,7 @@ func (s *authService) RegisterUser(req *dto.RegisterRequest) (*models.User, erro
 		return nil, fmt.Errorf("could not hash password: %w", err)
 	}
 
+	log.Println("Creating user and profile")
 	tx := s.userRepo.BeginTx()
 	if tx.Error != nil {
 		return nil, fmt.Errorf("could not start transaction: %w", tx.Error)
@@ -77,6 +78,12 @@ func (s *authService) RegisterUser(req *dto.RegisterRequest) (*models.User, erro
 }
 
 func (s *authService) LoginUser(req *dto.LoginRequest) (*models.User, error) {
+	tempReq := *req
+	tempReq.Password = "******"
+	tempReq.Email = utils.MaskEmail(tempReq.Email)
+	reqJSON, _ := json.Marshal(tempReq)
+	log.Printf("LoginUser request: %s\n", string(reqJSON))
+
 	user, err := s.userRepo.FindByEmail(req.Email)
 	if err != nil {
 		return nil, fmt.Errorf("could not find user: %w", err)
@@ -97,6 +104,7 @@ func (s *authService) LoginUser(req *dto.LoginRequest) (*models.User, error) {
 }
 
 func (s *authService) generateToken(user *models.User) (string, error) {
+	log.Println("Generating token for user:", user.ID)
 	token, err := utils.GenerateJWT(user.ID, user.Email)
 	if err != nil {
 		return "", fmt.Errorf("could not generate token: %w", err)
