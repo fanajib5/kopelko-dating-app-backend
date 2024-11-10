@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"kopelko-dating-app-backend/models"
@@ -29,6 +30,8 @@ func NewSubscriptionService(subscriptionRepo repositories.SubscriptionRepository
 
 // SubscribeUser subscribes a user to a premium feature
 func (s *subscriptionService) SubscribeUser(userID uint, featureID int) error {
+	log.Println("Subscire with userID: ", userID, " and featureID: ", featureID)
+
 	feature, err := s.featureRepo.GetFeatureByID(featureID)
 	if err != nil {
 		return fmt.Errorf("could not get premium feature: %w", err)
@@ -38,6 +41,7 @@ func (s *subscriptionService) SubscribeUser(userID uint, featureID int) error {
 	}
 
 	// Check if user has an active subscription
+	log.Println("Checking if user has an active subscription")
 	existingSubscription, err := s.subscriptionRepo.GetActiveSubscription(userID)
 	if err != nil {
 		return fmt.Errorf("could not get active subscription: %w", err)
@@ -53,6 +57,7 @@ func (s *subscriptionService) SubscribeUser(userID uint, featureID int) error {
 
 	now := time.Now()
 
+	log.Println("Creating subscription")
 	// Set subscription duration (e.g., 1 month)
 	// Assume that the subscription duration is 1 month
 	startDate := now
