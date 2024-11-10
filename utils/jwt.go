@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -17,6 +18,7 @@ type Claims struct {
 }
 
 func GenerateJWT(userID uint, email string) (string, error) {
+	log.Println("Generating JWT")
 	expirationTime := time.Now().Add(15 * time.Minute)
 	claims := &Claims{
 		UserID: userID,
@@ -32,6 +34,7 @@ func GenerateJWT(userID uint, email string) (string, error) {
 }
 
 func ParseJWT(tokenString string) (*Claims, error) {
+	log.Println("Parsing JWT")
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		return jwtKey, nil
