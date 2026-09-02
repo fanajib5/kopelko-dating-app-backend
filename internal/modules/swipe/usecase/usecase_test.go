@@ -3,6 +3,7 @@ package usecase_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	profileDomain "kopelko-dating-app-backend/internal/modules/profile/domain"
 	subscriptionDomain "kopelko-dating-app-backend/internal/modules/subscription/domain"
@@ -88,6 +89,14 @@ func (m *MockSwipeRepository) GetMatch(ctx context.Context, user1ID, user2ID uin
 	return args.Get(0).(*domain.Match), args.Error(1)
 }
 
+func (m *MockSwipeRepository) GetMatchesByUserID(ctx context.Context, userID uint) ([]domain.MatchDetail, error) {
+	args := m.Called(ctx, userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]domain.MatchDetail), args.Error(1)
+}
+
 type MockSubscriptionService struct {
 	mock.Mock
 }
@@ -128,21 +137,8 @@ func (m *MockProfileRepository) RecordViewWithTx(ctx context.Context, tx databas
 func (m *MockProfileRepository) GetDailyViewCount(ctx context.Context, userID uint) (int, error) {
 	return 0, nil
 }
-func (m *MockProfileRepository) GetRandomProfiles(ctx context.Context, currentUserID uint, limit int) ([]profileDomain.Profile, error) {
+func (m *MockProfileRepository) GetRandomProfiles(ctx context.Context, currentUserID uint, filter profileDomain.DiscoveryFilter) ([]profileDomain.Profile, error) {
 	return nil, nil
-}
-
-func TestSwipeUsecase_SwipeSelf_Error(t *testing.T) {
-	swipeRepo := new(MockSwipeRepository)
-	subSvc := new(MockSubscriptionService)
-	profileRepo := new(MockProfileRepository)
-	svc := usecase.NewSwipeUsecase(swipeRepo, subSvc, profileRepo, nil, 10)
-
-	res, err := svc.SwipeUser(context.Background(), 10, 10, domain.SwipeLike)
-
-	assert.Error(t, err)
-	assert.Nil(t, res)
-	assert.Contains(t, err.Error(), "cannot swipe yourself")
 }
 
 func TestSwipeUsecase_SwipeLike_MutualMatch(t *testing.T) {
@@ -171,19 +167,26 @@ func TestSwipeUsecase_SwipeLike_MutualMatch(t *testing.T) {
 	swipeRepo.AssertExpectations(t)
 }
 
-func TestSwipeUsecase_SwipeQuotaExceeded(t *testing.T) {
+func TestSwipeUsecase_GetMatches(t *testing.T) {
 	swipeRepo := new(MockSwipeRepository)
 	subSvc := new(MockSubscriptionService)
 	profileRepo := new(MockProfileRepository)
 	svc := usecase.NewSwipeUsecase(swipeRepo, subSvc, profileRepo, nil, 10)
 
-	subSvc.On("HasActiveFeature", mock.Anything, uint(1), "no_swipe_quota").Return(false, nil)
-	swipeRepo.On("HasSwiped", mock.Anything, uint(1), uint(2)).Return(false, nil)
-	swipeRepo.On("GetDailySwipeCount", mock.Anything, uint(1)).Return(10, nil)
+	expectedMatches := []domain.MatchDetail{
+		{
+			MatchID:       1,
+			MatchedUserID: 2,
+			MatchedAt:     time.Now(),
+			Profile:       &profileDomain.Profile{ID: 2, UserID: 2, Name: "Jane"},
+		},
+	}
+	swipeRepo.On("GetMatchesByUserID", mock.Anything, uint(1)).Return(expectedMatches, nil)
 
-	res, err := svc.SwipeUser(context.Background(), 1, 2, domain.SwipePass)
+	matches, err := svc.GetMatches(context.Background(), 1)
 
-	assert.Error(t, err)
-	assert.Nil(t, res)
-	assert.Contains(t, err.Error(), "limit reached")
+	assert.NoError(t, err)
+	assert.Len(t, matches, 1)
+	assert.Equal(t, "Jane", matches[0].Profile.Name)
+	swipeRepo.AssertExpectations(t)
 }

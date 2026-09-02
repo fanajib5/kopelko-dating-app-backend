@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	profileDomain "kopelko-dating-app-backend/internal/modules/profile/domain"
 	"kopelko-dating-app-backend/internal/platform/database"
 )
 
@@ -32,6 +33,13 @@ type Match struct {
 	MatchedAt time.Time `json:"matched_at"`
 }
 
+type MatchDetail struct {
+	MatchID       uint                   `json:"match_id"`
+	MatchedUserID uint                   `json:"matched_user_id"`
+	Profile       *profileDomain.Profile `json:"profile"`
+	MatchedAt     time.Time              `json:"matched_at"`
+}
+
 type SwipeRepository interface {
 	CreateSwipe(ctx context.Context, swipe *Swipe) error
 	CreateSwipeWithTx(ctx context.Context, tx database.DBTX, swipe *Swipe) error
@@ -44,6 +52,7 @@ type SwipeRepository interface {
 	CreateMatch(ctx context.Context, user1ID, user2ID uint) (*Match, error)
 	CreateMatchWithTx(ctx context.Context, tx database.DBTX, user1ID, user2ID uint) (*Match, error)
 	GetMatch(ctx context.Context, user1ID, user2ID uint) (*Match, error)
+	GetMatchesByUserID(ctx context.Context, userID uint) ([]MatchDetail, error)
 }
 
 type SwipeResponse struct {
@@ -54,4 +63,5 @@ type SwipeResponse struct {
 
 type SwipeService interface {
 	SwipeUser(ctx context.Context, userID, targetUserID uint, swipeType SwipeType) (*SwipeResponse, error)
+	GetMatches(ctx context.Context, userID uint) ([]MatchDetail, error)
 }

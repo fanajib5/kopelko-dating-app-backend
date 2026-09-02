@@ -28,15 +28,30 @@ func NewProfileUsecase(
 }
 
 func (u *profileUsecase) GetMyProfile(ctx context.Context, userID uint) (*domain.Profile, error) {
-	return u.repo.GetByUserID(ctx, userID)
+	profile, err := u.repo.GetByUserID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Dynamically evaluate verified & premium status
+	isVerified, _ := u.subscriptionSvc.HasActiveFeature(ctx, userID, "verified_label")
+	if isVerified {
+		profile.IsVerified = true
+	}
+
+	isUnlimited, _ := u.subscriptionSvc.HasActiveFeature(ctx, userID, "no_swipe_quota")
+	if isUnlimited || isVerified {
+		profile.IsPremium = true
+	}
+
+	return profile, nil
 }
 
 func (u *profileUsecase) CreateProfile(ctx context.Context, profile *domain.Profile) error {
 	return u.repo.Create(ctx, profile)
 }
 
-func (u *profileUsecase) GetRandomProfiles(ctx context.Context, currentUserID uint) ([]domain.Profile, error) {
-	// Check if user is unlimited
+func (u *profileUsecase) GetRandomProfiles(ctx context.Context, currentUserID uint, filter domain.DiscoveryFilter) ([]domain.Profile, error) {
 	hasNoQuota, err := u.subscriptionSvc.HasActiveFeature(ctx, currentUserID, "no_swipe_quota")
 	if err != nil {
 		return nil, fmt.Errorf("could not verify user subscription: %w", err)
@@ -54,7 +69,8 @@ func (u *profileUsecase) GetRandomProfiles(ctx context.Context, currentUserID ui
 		limit = u.limitSwipe - count
 	}
 
-	profiles, err := u.repo.GetRandomProfiles(ctx, currentUserID, limit)
+	filter.Limit = limit
+	profiles, err := u.repo.GetRandomProfiles(ctx, currentUserID, filter)
 	if err != nil {
 		return nil, err
 	}

@@ -147,3 +147,7 @@ func (u *swipeUsecase) SwipeUser(ctx context.Context, userID, targetUserID uint,
 
 	return &resp, nil
 }
+
+func (u *swipeUsecase) GetMatches(ctx context.Context, userID uint) ([]domain.MatchDetail, error) {
+	return u.swipeRepo.GetMatchesByUserID(ctx, userID)
+}

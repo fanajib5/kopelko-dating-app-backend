@@ -103,7 +103,7 @@ func (m *MockProfileRepoForIdentity) RecordViewWithTx(ctx context.Context, tx da
 func (m *MockProfileRepoForIdentity) GetDailyViewCount(ctx context.Context, userID uint) (int, error) {
 	return 0, nil
 }
-func (m *MockProfileRepoForIdentity) GetRandomProfiles(ctx context.Context, currentUserID uint, limit int) ([]profileDomain.Profile, error) {
+func (m *MockProfileRepoForIdentity) GetRandomProfiles(ctx context.Context, currentUserID uint, filter profileDomain.DiscoveryFilter) ([]profileDomain.Profile, error) {
 	return nil, nil
 }
 

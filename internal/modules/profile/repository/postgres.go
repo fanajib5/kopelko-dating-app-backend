@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"kopelko-dating-app-backend/internal/modules/profile/domain"
@@ -47,16 +48,18 @@ func (r *profilePostgresRepo) CreateWithTx(ctx context.Context, tx database.DBTX
 
 func (r *profilePostgresRepo) GetByUserID(ctx context.Context, userID uint) (*domain.Profile, error) {
 	query := `
-		SELECT id, user_id, name, age, COALESCE(bio, ''), gender, COALESCE(location, ''), 
-		       COALESCE(interests, '{}'), COALESCE(photos, '{}'), is_premium, created_at, updated_at, deleted_at
-		FROM profiles
-		WHERE user_id = $1 AND deleted_at IS NULL
+		SELECT p.id, p.user_id, p.name, p.age, COALESCE(p.bio, ''), p.gender, COALESCE(p.location, ''), 
+		       COALESCE(p.interests, '{}'), COALESCE(p.photos, '{}'), p.is_premium, u.is_verified, 
+		       p.created_at, p.updated_at, p.deleted_at
+		FROM profiles p
+		JOIN users u ON p.user_id = u.id
+		WHERE p.user_id = $1 AND p.deleted_at IS NULL
 		LIMIT 1
 	`
 	var p domain.Profile
 	err := r.db.QueryRow(ctx, query, userID).Scan(
 		&p.ID, &p.UserID, &p.Name, &p.Age, &p.Bio, &p.Gender, &p.Location,
-		&p.Interests, &p.Photos, &p.IsPremium, &p.CreatedAt, &p.UpdatedAt, &p.DeletedAt,
+		&p.Interests, &p.Photos, &p.IsPremium, &p.IsVerified, &p.CreatedAt, &p.UpdatedAt, &p.DeletedAt,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -116,11 +119,14 @@ func (r *profilePostgresRepo) GetDailyViewCount(ctx context.Context, userID uint
 	return count, nil
 }
 
-func (r *profilePostgresRepo) GetRandomProfiles(ctx context.Context, currentUserID uint, limit int) ([]domain.Profile, error) {
-	query := `
+func (r *profilePostgresRepo) GetRandomProfiles(ctx context.Context, currentUserID uint, filter domain.DiscoveryFilter) ([]domain.Profile, error) {
+	var queryBuilder strings.Builder
+	queryBuilder.WriteString(`
 		SELECT p.id, p.user_id, p.name, p.age, COALESCE(p.bio, ''), p.gender, COALESCE(p.location, ''), 
-		       COALESCE(p.interests, '{}'), COALESCE(p.photos, '{}'), p.is_premium, p.created_at, p.updated_at, p.deleted_at
+		       COALESCE(p.interests, '{}'), COALESCE(p.photos, '{}'), p.is_premium, u.is_verified, 
+		       p.created_at, p.updated_at, p.deleted_at
 		FROM profiles p
+		JOIN users u ON p.user_id = u.id
 		WHERE p.user_id != $1
 		  AND p.deleted_at IS NULL
 		  AND p.user_id NOT IN (
@@ -128,10 +134,37 @@ func (r *profilePostgresRepo) GetRandomProfiles(ctx context.Context, currentUser
 		      FROM profile_views pv 
 		      WHERE pv.user_id = $1 AND pv.view_date = CURRENT_DATE
 		  )
-		ORDER BY RANDOM()
-		LIMIT $2
-	`
-	rows, err := r.db.Query(ctx, query, currentUserID, limit)
+	`)
+
+	args := []any{currentUserID}
+	argIdx := 2
+
+	if filter.Gender != nil && *filter.Gender != "" {
+		queryBuilder.WriteString(fmt.Sprintf(" AND p.gender = $%d", argIdx))
+		args = append(args, *filter.Gender)
+		argIdx++
+	}
+
+	if filter.MinAge != nil && *filter.MinAge > 0 {
+		queryBuilder.WriteString(fmt.Sprintf(" AND p.age >= $%d", argIdx))
+		args = append(args, *filter.MinAge)
+		argIdx++
+	}
+
+	if filter.MaxAge != nil && *filter.MaxAge > 0 {
+		queryBuilder.WriteString(fmt.Sprintf(" AND p.age <= $%d", argIdx))
+		args = append(args, *filter.MaxAge)
+		argIdx++
+	}
+
+	queryBuilder.WriteString(fmt.Sprintf(" ORDER BY RANDOM() LIMIT $%d", argIdx))
+	limit := filter.Limit
+	if limit <= 0 {
+		limit = 10
+	}
+	args = append(args, limit)
+
+	rows, err := r.db.Query(ctx, queryBuilder.String(), args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query random profiles: %w", err)
 	}
@@ -142,7 +175,7 @@ func (r *profilePostgresRepo) GetRandomProfiles(ctx context.Context, currentUser
 		var p domain.Profile
 		if err := rows.Scan(
 			&p.ID, &p.UserID, &p.Name, &p.Age, &p.Bio, &p.Gender, &p.Location,
-			&p.Interests, &p.Photos, &p.IsPremium, &p.CreatedAt, &p.UpdatedAt, &p.DeletedAt,
+			&p.Interests, &p.Photos, &p.IsPremium, &p.IsVerified, &p.CreatedAt, &p.UpdatedAt, &p.DeletedAt,
 		); err != nil {
 			return nil, err
 		}

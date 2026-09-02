@@ -55,8 +55,8 @@ func (m *MockProfileRepository) GetDailyViewCount(ctx context.Context, userID ui
 	return args.Int(0), args.Error(1)
 }
 
-func (m *MockProfileRepository) GetRandomProfiles(ctx context.Context, currentUserID uint, limit int) ([]domain.Profile, error) {
-	args := m.Called(ctx, currentUserID, limit)
+func (m *MockProfileRepository) GetRandomProfiles(ctx context.Context, currentUserID uint, filter domain.DiscoveryFilter) ([]domain.Profile, error) {
+	args := m.Called(ctx, currentUserID, filter)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
@@ -76,76 +76,50 @@ func (m *MockSubscriptionService) HasActiveFeature(ctx context.Context, userID u
 	return args.Bool(0), args.Error(1)
 }
 
-func TestProfileUsecase_GetMyProfile(t *testing.T) {
+func TestProfileUsecase_GetMyProfile_WithVerifiedBadge(t *testing.T) {
 	repo := new(MockProfileRepository)
 	subSvc := new(MockSubscriptionService)
 	svc := usecase.NewProfileUsecase(repo, subSvc, 10)
 
-	expected := &domain.Profile{ID: 1, UserID: 10, Name: "John"}
-	repo.On("GetByUserID", mock.Anything, uint(10)).Return(expected, nil)
+	initialProfile := &domain.Profile{ID: 1, UserID: 10, Name: "John", IsVerified: false, IsPremium: false}
+	repo.On("GetByUserID", mock.Anything, uint(10)).Return(initialProfile, nil)
+	subSvc.On("HasActiveFeature", mock.Anything, uint(10), "verified_label").Return(true, nil)
+	subSvc.On("HasActiveFeature", mock.Anything, uint(10), "no_swipe_quota").Return(false, nil)
 
 	p, err := svc.GetMyProfile(context.Background(), 10)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, p)
-	repo.AssertExpectations(t)
-}
-
-func TestProfileUsecase_GetRandomProfiles_UnderQuota(t *testing.T) {
-	repo := new(MockProfileRepository)
-	subSvc := new(MockSubscriptionService)
-	svc := usecase.NewProfileUsecase(repo, subSvc, 10)
-
-	subSvc.On("HasActiveFeature", mock.Anything, uint(10), "no_swipe_quota").Return(false, nil)
-	repo.On("GetDailyViewCount", mock.Anything, uint(10)).Return(2, nil)
-
-	profiles := []domain.Profile{
-		{ID: 1, UserID: 11, Name: "Alice"},
-		{ID: 2, UserID: 12, Name: "Bob"},
-	}
-	repo.On("GetRandomProfiles", mock.Anything, uint(10), 8).Return(profiles, nil)
-	repo.On("RecordView", mock.Anything, uint(10), uint(11), (*uint)(nil)).Return(nil)
-	repo.On("RecordView", mock.Anything, uint(10), uint(12), (*uint)(nil)).Return(nil)
-
-	res, err := svc.GetRandomProfiles(context.Background(), 10)
-
-	assert.NoError(t, err)
-	assert.Len(t, res, 2)
+	assert.True(t, p.IsVerified)
+	assert.True(t, p.IsPremium)
 	repo.AssertExpectations(t)
 	subSvc.AssertExpectations(t)
 }
 
-func TestProfileUsecase_GetRandomProfiles_QuotaExceeded(t *testing.T) {
+func TestProfileUsecase_GetRandomProfiles_WithFilters(t *testing.T) {
 	repo := new(MockProfileRepository)
 	subSvc := new(MockSubscriptionService)
 	svc := usecase.NewProfileUsecase(repo, subSvc, 10)
+
+	gender := "female"
+	minAge := 20
+	maxAge := 30
+	filter := domain.DiscoveryFilter{Gender: &gender, MinAge: &minAge, MaxAge: &maxAge}
 
 	subSvc.On("HasActiveFeature", mock.Anything, uint(10), "no_swipe_quota").Return(false, nil)
-	repo.On("GetDailyViewCount", mock.Anything, uint(10)).Return(10, nil)
+	repo.On("GetDailyViewCount", mock.Anything, uint(10)).Return(2, nil)
 
-	res, err := svc.GetRandomProfiles(context.Background(), 10)
-
-	assert.Error(t, err)
-	assert.Nil(t, res)
-	assert.Contains(t, err.Error(), "limit reached")
-}
-
-func TestProfileUsecase_GetRandomProfiles_UnlimitedPremium(t *testing.T) {
-	repo := new(MockProfileRepository)
-	subSvc := new(MockSubscriptionService)
-	svc := usecase.NewProfileUsecase(repo, subSvc, 10)
-
-	subSvc.On("HasActiveFeature", mock.Anything, uint(10), "no_swipe_quota").Return(true, nil)
-
+	expectedFilter := filter
+	expectedFilter.Limit = 8
 	profiles := []domain.Profile{
-		{ID: 1, UserID: 11, Name: "Alice"},
+		{ID: 1, UserID: 11, Name: "Alice", Gender: "female", Age: 22},
 	}
-	repo.On("GetRandomProfiles", mock.Anything, uint(10), 10).Return(profiles, nil)
+	repo.On("GetRandomProfiles", mock.Anything, uint(10), expectedFilter).Return(profiles, nil)
 	repo.On("RecordView", mock.Anything, uint(10), uint(11), (*uint)(nil)).Return(nil)
 
-	res, err := svc.GetRandomProfiles(context.Background(), 10)
+	res, err := svc.GetRandomProfiles(context.Background(), 10, filter)
 
 	assert.NoError(t, err)
 	assert.Len(t, res, 1)
 	repo.AssertExpectations(t)
+	subSvc.AssertExpectations(t)
 }

@@ -16,19 +16,20 @@ const (
 )
 
 type Profile struct {
-	ID        uint       `json:"id"`
-	UserID    uint       `json:"user_id"`
-	Name      string     `json:"name"`
-	Age       int        `json:"age"`
-	Bio       string     `json:"bio"`
-	Gender    Gender     `json:"gender"`
-	Location  string     `json:"location"`
-	Interests []string   `json:"interests"`
-	Photos    []string   `json:"photos"`
-	IsPremium bool       `json:"is_premium"`
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
-	DeletedAt *time.Time `json:"deleted_at,omitempty"`
+	ID         uint       `json:"id"`
+	UserID     uint       `json:"user_id"`
+	Name       string     `json:"name"`
+	Age        int        `json:"age"`
+	Bio        string     `json:"bio"`
+	Gender     Gender     `json:"gender"`
+	Location   string     `json:"location"`
+	Interests  []string   `json:"interests"`
+	Photos     []string   `json:"photos"`
+	IsPremium  bool       `json:"is_premium"`
+	IsVerified bool       `json:"is_verified"`
+	CreatedAt  time.Time  `json:"created_at"`
+	UpdatedAt  time.Time  `json:"updated_at"`
+	DeletedAt  *time.Time `json:"deleted_at,omitempty"`
 }
 
 type ProfileView struct {
@@ -39,6 +40,13 @@ type ProfileView struct {
 	ViewDate     time.Time `json:"view_date"`
 }
 
+type DiscoveryFilter struct {
+	Gender *string `json:"gender,omitempty"`
+	MinAge *int    `json:"min_age,omitempty"`
+	MaxAge *int    `json:"max_age,omitempty"`
+	Limit  int     `json:"limit"`
+}
+
 type ProfileRepository interface {
 	Create(ctx context.Context, profile *Profile) error
 	CreateWithTx(ctx context.Context, tx database.DBTX, profile *Profile) error
@@ -47,11 +55,11 @@ type ProfileRepository interface {
 	RecordView(ctx context.Context, userID, viewedUserID uint, swipeID *uint) error
 	RecordViewWithTx(ctx context.Context, tx database.DBTX, userID, viewedUserID uint, swipeID *uint) error
 	GetDailyViewCount(ctx context.Context, userID uint) (int, error)
-	GetRandomProfiles(ctx context.Context, currentUserID uint, limit int) ([]Profile, error)
+	GetRandomProfiles(ctx context.Context, currentUserID uint, filter DiscoveryFilter) ([]Profile, error)
 }
 
 type ProfileService interface {
 	GetMyProfile(ctx context.Context, userID uint) (*Profile, error)
-	GetRandomProfiles(ctx context.Context, currentUserID uint) ([]Profile, error)
+	GetRandomProfiles(ctx context.Context, currentUserID uint, filter DiscoveryFilter) ([]Profile, error)
 	CreateProfile(ctx context.Context, profile *Profile) error
 }

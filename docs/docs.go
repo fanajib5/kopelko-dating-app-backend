@@ -125,6 +125,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/users/matches": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve a list of mutual matches along with candidate profile metadata",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Swipes"
+                ],
+                "summary": "Get all matches",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/http.APIResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/domain.MatchDetail"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/http.APIResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/users/profiles/me": {
             "get": {
                 "security": [
@@ -132,7 +178,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieve the profile of the current logged-in user",
+                "description": "Retrieve the profile of the current logged-in user with dynamic verified badge \u0026 premium status",
                 "produces": [
                     "application/json"
                 ],
@@ -181,7 +227,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Fetch random candidate profiles that have not been viewed/swiped today, respecting daily limits (10/day for non-premium)",
+                "description": "Fetch random candidate profiles that have not been viewed/swiped today, respecting daily limits and optional preferences (gender, age range)",
                 "produces": [
                     "application/json"
                 ],
@@ -189,6 +235,26 @@ const docTemplate = `{
                     "Profiles"
                 ],
                 "summary": "Discovery feed / Random Profiles",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by gender (male, female, other)",
+                        "name": "gender",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filter minimum age",
+                        "name": "min_age",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filter maximum age",
+                        "name": "max_age",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -391,6 +457,23 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.MatchDetail": {
+            "type": "object",
+            "properties": {
+                "match_id": {
+                    "type": "integer"
+                },
+                "matched_at": {
+                    "type": "string"
+                },
+                "matched_user_id": {
+                    "type": "integer"
+                },
+                "profile": {
+                    "$ref": "#/definitions/domain.Profile"
+                }
+            }
+        },
         "domain.Profile": {
             "type": "object",
             "properties": {
@@ -419,6 +502,9 @@ const docTemplate = `{
                     }
                 },
                 "is_premium": {
+                    "type": "boolean"
+                },
+                "is_verified": {
                     "type": "boolean"
                 },
                 "location": {

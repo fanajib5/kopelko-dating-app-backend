@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	profileDomain "kopelko-dating-app-backend/internal/modules/profile/domain"
 	"kopelko-dating-app-backend/internal/modules/swipe/domain"
 	"kopelko-dating-app-backend/internal/platform/database"
 
@@ -146,4 +147,41 @@ func (r *swipePostgresRepo) GetMatch(ctx context.Context, user1ID, user2ID uint)
 		return nil, fmt.Errorf("failed to query match: %w", err)
 	}
 	return &m, nil
+}
+
+func (r *swipePostgresRepo) GetMatchesByUserID(ctx context.Context, userID uint) ([]domain.MatchDetail, error) {
+	query := `
+		SELECT m.id, 
+		       CASE WHEN m.user1_id = $1 THEN m.user2_id ELSE m.user1_id END AS matched_user_id,
+		       m.matched_at,
+		       p.id, p.user_id, p.name, p.age, COALESCE(p.bio, ''), p.gender, COALESCE(p.location, ''),
+		       COALESCE(p.interests, '{}'), COALESCE(p.photos, '{}'), p.is_premium, u.is_verified,
+		       p.created_at, p.updated_at, p.deleted_at
+		FROM matches m
+		JOIN users u ON u.id = (CASE WHEN m.user1_id = $1 THEN m.user2_id ELSE m.user1_id END)
+		JOIN profiles p ON p.user_id = u.id
+		WHERE (m.user1_id = $1 OR m.user2_id = $1) AND p.deleted_at IS NULL
+		ORDER BY m.matched_at DESC
+	`
+	rows, err := r.db.Query(ctx, query, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query matches: %w", err)
+	}
+	defer rows.Close()
+
+	var matches []domain.MatchDetail
+	for rows.Next() {
+		var md domain.MatchDetail
+		var p profileDomain.Profile
+		if err := rows.Scan(
+			&md.MatchID, &md.MatchedUserID, &md.MatchedAt,
+			&p.ID, &p.UserID, &p.Name, &p.Age, &p.Bio, &p.Gender, &p.Location,
+			&p.Interests, &p.Photos, &p.IsPremium, &p.IsVerified, &p.CreatedAt, &p.UpdatedAt, &p.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		md.Profile = &p
+		matches = append(matches, md)
+	}
+	return matches, nil
 }

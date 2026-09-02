@@ -21,6 +21,17 @@ definitions:
       user2_id:
         type: integer
     type: object
+  domain.MatchDetail:
+    properties:
+      match_id:
+        type: integer
+      matched_at:
+        type: string
+      matched_user_id:
+        type: integer
+      profile:
+        $ref: '#/definitions/domain.Profile'
+    type: object
   domain.Profile:
     properties:
       age:
@@ -40,6 +51,8 @@ definitions:
           type: string
         type: array
       is_premium:
+        type: boolean
+      is_verified:
         type: boolean
       location:
         type: string
@@ -287,9 +300,37 @@ paths:
       summary: Register new user
       tags:
       - Authentication
+  /api/users/matches:
+    get:
+      description: Retrieve a list of mutual matches along with candidate profile
+        metadata
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/domain.MatchDetail'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all matches
+      tags:
+      - Swipes
   /api/users/profiles/me:
     get:
-      description: Retrieve the profile of the current logged-in user
+      description: Retrieve the profile of the current logged-in user with dynamic
+        verified badge & premium status
       produces:
       - application/json
       responses:
@@ -318,7 +359,20 @@ paths:
   /api/users/profiles/random:
     get:
       description: Fetch random candidate profiles that have not been viewed/swiped
-        today, respecting daily limits (10/day for non-premium)
+        today, respecting daily limits and optional preferences (gender, age range)
+      parameters:
+      - description: Filter by gender (male, female, other)
+        in: query
+        name: gender
+        type: string
+      - description: Filter minimum age
+        in: query
+        name: min_age
+        type: integer
+      - description: Filter maximum age
+        in: query
+        name: max_age
+        type: integer
       produces:
       - application/json
       responses:

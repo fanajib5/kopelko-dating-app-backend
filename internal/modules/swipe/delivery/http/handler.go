@@ -65,6 +65,34 @@ func (h *SwipeHandler) Swipe(c echo.Context) error {
 	return pkgHttp.Success(c, http.StatusOK, "Swipe processed successfully", res)
 }
 
+// GetMatches godoc
+// @Summary Get all matches
+// @Description Retrieve a list of mutual matches along with candidate profile metadata
+// @Tags Swipes
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {object} pkgHttp.APIResponse{data=[]domain.MatchDetail}
+// @Failure 401 {object} pkgHttp.APIResponse
+// @Router /api/users/matches [get]
+func (h *SwipeHandler) GetMatches(c echo.Context) error {
+	userID, ok := middleware.GetCurrentUserID(c)
+	if !ok {
+		return pkgHttp.Unauthorized(c, "Unauthorized")
+	}
+
+	matches, err := h.svc.GetMatches(c.Request().Context(), userID)
+	if err != nil {
+		return pkgHttp.InternalServerError(c, "Failed to retrieve matches", err.Error())
+	}
+
+	if matches == nil {
+		matches = []domain.MatchDetail{}
+	}
+
+	return pkgHttp.Success(c, http.StatusOK, "Matches retrieved successfully", matches)
+}
+
 func (h *SwipeHandler) RegisterRoutes(g *echo.Group) {
 	g.POST("/swipes/:target_user_id", h.Swipe)
+	g.GET("/matches", h.GetMatches)
 }
