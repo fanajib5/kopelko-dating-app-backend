@@ -97,6 +97,8 @@ func main() {
 	tokenSvc := token.NewJWTService(cfg.JWTSecret)
 	customValidator := middleware.NewValidator()
 	authMiddleware := middleware.AuthMiddleware(tokenSvc)
+	securityHeadersMiddleware := middleware.SecurityHeadersMiddleware()
+	authRateLimiter := middleware.NewAuthRateLimiter(10, 1*time.Minute)
 
 	// 4. Repositories
 	userRepository := identityRepo.NewUserRepository(dbPool)
@@ -122,6 +124,7 @@ func main() {
 	e.Validator = customValidator
 	e.Use(echoMiddleware.CORS())
 	e.Use(echoMiddleware.Recover())
+	e.Use(securityHeadersMiddleware)
 	e.Use(middleware.RequestIDAndLoggingMiddleware())
 
 	// Swagger documentation UI
@@ -133,7 +136,10 @@ func main() {
 	})
 
 	api := e.Group("/api")
-	identityHandler.RegisterRoutes(api)
+
+	// Public Auth Routes protected with rate limiter
+	authGroup := api.Group("", authRateLimiter)
+	identityHandler.RegisterRoutes(authGroup)
 
 	// Protected Routes
 	userGroup := api.Group("/users", authMiddleware)

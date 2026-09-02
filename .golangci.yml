@@ -1,0 +1,30 @@
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  enable:
+    - govet
+    - errcheck
+    - staticcheck
+    - unused
+    - ineffassign
+    - revive
+    - misspell
+
+linters-settings:
+  govet:
+    shadow: true
+  revive:
+    severity: warning
+  misspell:
+    locale: US
+
+issues:
+  exclude-dirs:
+    - docs
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - errcheck
+        - gosec

@@ -24,8 +24,11 @@ jobs:
       - name: Verify Dependencies
         run: go mod verify
 
-      - name: Go Vet
-        run: go vet ./...
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.64.5
+          args: --timeout=5m
 
       - name: Run Tests with Race Detector
         run: go test -v -race -cover ./internal/...

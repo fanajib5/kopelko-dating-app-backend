@@ -1,4 +1,4 @@
-.PHONY: run build test test-cover docker-up docker-down migrate seed swagger clean
+.PHONY: run build test test-cover docker-up docker-down migrate seed swagger lint clean
 
 APP_NAME=dating-app
 
@@ -15,6 +15,9 @@ test-cover:
 	go test -v -cover -coverprofile=coverage.out ./internal/...
 	go tool cover -html=coverage.out -o coverage.html
 	@echo "Coverage report generated at coverage.html"
+
+lint:
+	golangci-lint run ./...
 
 migrate:
 	go run cmd/api/main.go -migrate
