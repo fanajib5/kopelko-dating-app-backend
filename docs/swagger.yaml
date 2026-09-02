@@ -118,6 +118,32 @@ definitions:
     x-enum-varnames:
     - SwipePass
     - SwipeLike
+  domain.UpdateProfileRequest:
+    properties:
+      age:
+        minimum: 18
+        type: integer
+      bio:
+        type: string
+      gender:
+        enum:
+        - male
+        - female
+        - other
+        type: string
+      interests:
+        items:
+          type: string
+        type: array
+      location:
+        type: string
+      name:
+        type: string
+      photos:
+        items:
+          type: string
+        type: array
+    type: object
   domain.User:
     properties:
       created_at:
@@ -354,6 +380,43 @@ paths:
       security:
       - BearerAuth: []
       summary: View current authenticated user profile
+      tags:
+      - Profiles
+    put:
+      consumes:
+      - application/json
+      description: Modify details of current user profile (bio, interests, photos,
+        location, etc.)
+      parameters:
+      - description: Update profile payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.Profile'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Update current authenticated user profile
       tags:
       - Profiles
   /api/users/profiles/random:

@@ -123,3 +123,27 @@ func TestProfileUsecase_GetRandomProfiles_WithFilters(t *testing.T) {
 	repo.AssertExpectations(t)
 	subSvc.AssertExpectations(t)
 }
+
+func TestProfileUsecase_UpdateMyProfile(t *testing.T) {
+	repo := new(MockProfileRepository)
+	subSvc := new(MockSubscriptionService)
+	svc := usecase.NewProfileUsecase(repo, subSvc, 10)
+
+	existing := &domain.Profile{ID: 1, UserID: 10, Name: "Old Name", Bio: "Old Bio"}
+	repo.On("GetByUserID", mock.Anything, uint(10)).Return(existing, nil)
+	repo.On("Update", mock.Anything, mock.AnythingOfType("*domain.Profile")).Return(nil)
+	subSvc.On("HasActiveFeature", mock.Anything, uint(10), "verified_label").Return(false, nil)
+	subSvc.On("HasActiveFeature", mock.Anything, uint(10), "no_swipe_quota").Return(false, nil)
+
+	newName := "New Name"
+	newBio := "New Bio"
+	req := domain.UpdateProfileRequest{Name: &newName, Bio: &newBio}
+
+	updated, err := svc.UpdateMyProfile(context.Background(), 10, req)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, updated)
+	assert.Equal(t, "New Name", updated.Name)
+	assert.Equal(t, "New Bio", updated.Bio)
+	repo.AssertExpectations(t)
+}

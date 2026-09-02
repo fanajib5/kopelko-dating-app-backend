@@ -43,6 +43,41 @@ func (h *ProfileHandler) ViewMyProfile(c echo.Context) error {
 	return pkgHttp.Success(c, http.StatusOK, "Profile retrieved successfully", profile)
 }
 
+// UpdateMyProfile godoc
+// @Summary Update current authenticated user profile
+// @Description Modify details of current user profile (bio, interests, photos, location, etc.)
+// @Tags Profiles
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body domain.UpdateProfileRequest true "Update profile payload"
+// @Success 200 {object} pkgHttp.APIResponse{data=domain.Profile}
+// @Failure 400 {object} pkgHttp.APIResponse
+// @Failure 401 {object} pkgHttp.APIResponse
+// @Router /api/users/profiles/me [put]
+func (h *ProfileHandler) UpdateMyProfile(c echo.Context) error {
+	userID, ok := middleware.GetCurrentUserID(c)
+	if !ok {
+		return pkgHttp.Unauthorized(c, "Unauthorized")
+	}
+
+	var req domain.UpdateProfileRequest
+	if err := c.Bind(&req); err != nil {
+		return pkgHttp.BadRequest(c, "Invalid request body", err.Error())
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return pkgHttp.BadRequest(c, "Validation failed", err.Error())
+	}
+
+	profile, err := h.svc.UpdateMyProfile(c.Request().Context(), userID, req)
+	if err != nil {
+		return pkgHttp.BadRequest(c, err.Error(), nil)
+	}
+
+	return pkgHttp.Success(c, http.StatusOK, "Profile updated successfully", profile)
+}
+
 // RandomProfiles godoc
 // @Summary Discovery feed / Random Profiles
 // @Description Fetch random candidate profiles that have not been viewed/swiped today, respecting daily limits and optional preferences (gender, age range)
@@ -88,5 +123,6 @@ func (h *ProfileHandler) RandomProfiles(c echo.Context) error {
 func (h *ProfileHandler) RegisterRoutes(g *echo.Group) {
 	profiles := g.Group("/profiles")
 	profiles.GET("/me", h.ViewMyProfile)
+	profiles.PUT("/me", h.UpdateMyProfile)
 	profiles.GET("/random", h.RandomProfiles)
 }

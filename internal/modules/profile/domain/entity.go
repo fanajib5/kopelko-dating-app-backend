@@ -47,6 +47,16 @@ type DiscoveryFilter struct {
 	Limit  int     `json:"limit"`
 }
 
+type UpdateProfileRequest struct {
+	Name      *string   `json:"name,omitempty" validate:"omitempty"`
+	Age       *int      `json:"age,omitempty" validate:"omitempty,gte=18"`
+	Bio       *string   `json:"bio,omitempty" validate:"omitempty"`
+	Gender    *string   `json:"gender,omitempty" validate:"omitempty,oneof=male female other"`
+	Location  *string   `json:"location,omitempty" validate:"omitempty"`
+	Interests []string  `json:"interests,omitempty" validate:"omitempty"`
+	Photos    []string  `json:"photos,omitempty" validate:"omitempty"`
+}
+
 type ProfileRepository interface {
 	Create(ctx context.Context, profile *Profile) error
 	CreateWithTx(ctx context.Context, tx database.DBTX, profile *Profile) error
@@ -62,4 +72,5 @@ type ProfileService interface {
 	GetMyProfile(ctx context.Context, userID uint) (*Profile, error)
 	GetRandomProfiles(ctx context.Context, currentUserID uint, filter DiscoveryFilter) ([]Profile, error)
 	CreateProfile(ctx context.Context, profile *Profile) error
+	UpdateMyProfile(ctx context.Context, userID uint, req UpdateProfileRequest) (*Profile, error)
 }

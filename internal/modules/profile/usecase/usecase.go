@@ -51,6 +51,41 @@ func (u *profileUsecase) CreateProfile(ctx context.Context, profile *domain.Prof
 	return u.repo.Create(ctx, profile)
 }
 
+func (u *profileUsecase) UpdateMyProfile(ctx context.Context, userID uint, req domain.UpdateProfileRequest) (*domain.Profile, error) {
+	profile, err := u.repo.GetByUserID(ctx, userID)
+	if err != nil {
+		return nil, errors.New("profile not found")
+	}
+
+	if req.Name != nil {
+		profile.Name = *req.Name
+	}
+	if req.Age != nil {
+		profile.Age = *req.Age
+	}
+	if req.Bio != nil {
+		profile.Bio = *req.Bio
+	}
+	if req.Gender != nil {
+		profile.Gender = domain.Gender(*req.Gender)
+	}
+	if req.Location != nil {
+		profile.Location = *req.Location
+	}
+	if req.Interests != nil {
+		profile.Interests = req.Interests
+	}
+	if req.Photos != nil {
+		profile.Photos = req.Photos
+	}
+
+	if err := u.repo.Update(ctx, profile); err != nil {
+		return nil, fmt.Errorf("failed to update profile: %w", err)
+	}
+
+	return u.GetMyProfile(ctx, userID)
+}
+
 func (u *profileUsecase) GetRandomProfiles(ctx context.Context, currentUserID uint, filter domain.DiscoveryFilter) ([]domain.Profile, error) {
 	hasNoQuota, err := u.subscriptionSvc.HasActiveFeature(ctx, currentUserID, "no_swipe_quota")
 	if err != nil {
