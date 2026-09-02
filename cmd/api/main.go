@@ -1,7 +1,13 @@
 package main
 
 import (
+	"context"
 	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	identityHttp "kopelko-dating-app-backend/internal/modules/identity/delivery/http"
 	identityRepo "kopelko-dating-app-backend/internal/modules/identity/repository"
@@ -23,13 +29,6 @@ import (
 	"kopelko-dating-app-backend/internal/platform/database"
 	"kopelko-dating-app-backend/internal/platform/middleware"
 	"kopelko-dating-app-backend/internal/platform/token"
-
-	"context"
-	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 
 	"github.com/labstack/echo/v4"
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
