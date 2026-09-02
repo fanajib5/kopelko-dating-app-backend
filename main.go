@@ -130,9 +130,31 @@ func main() {
 	// Swagger documentation UI
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
-	// Health check
+	// Healthcheck Probes
 	e.GET("/health", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, map[string]string{"status": "healthy"})
+		return c.JSON(http.StatusOK, map[string]string{
+			"status": "alive",
+			"time":   time.Now().UTC().Format(time.RFC3339),
+		})
+	})
+
+	e.GET("/health/ready", func(c echo.Context) error {
+		pingCtx, pingCancel := context.WithTimeout(c.Request().Context(), 2*time.Second)
+		defer pingCancel()
+
+		if err := dbPool.Ping(pingCtx); err != nil {
+			return c.JSON(http.StatusServiceUnavailable, map[string]any{
+				"status":   "unready",
+				"database": "disconnected",
+				"error":    err.Error(),
+			})
+		}
+
+		return c.JSON(http.StatusOK, map[string]any{
+			"status":   "ready",
+			"database": "connected",
+			"time":     time.Now().UTC().Format(time.RFC3339),
+		})
 	})
 
 	api := e.Group("/api")
