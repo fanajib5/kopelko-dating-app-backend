@@ -3,6 +3,8 @@ package domain
 import (
 	"context"
 	"time"
+
+	"kopelko-dating-app-backend/internal/platform/database"
 )
 
 type SwipeType string
@@ -32,10 +34,15 @@ type Match struct {
 
 type SwipeRepository interface {
 	CreateSwipe(ctx context.Context, swipe *Swipe) error
+	CreateSwipeWithTx(ctx context.Context, tx database.DBTX, swipe *Swipe) error
 	GetDailySwipeCount(ctx context.Context, userID uint) (int, error)
+	GetDailySwipeCountWithTx(ctx context.Context, tx database.DBTX, userID uint) (int, error)
 	HasSwiped(ctx context.Context, userID, targetUserID uint) (bool, error)
+	HasSwipedWithTx(ctx context.Context, tx database.DBTX, userID, targetUserID uint) (bool, error)
 	GetSwipe(ctx context.Context, userID, targetUserID uint) (*Swipe, error)
+	GetSwipeWithTx(ctx context.Context, tx database.DBTX, userID, targetUserID uint) (*Swipe, error)
 	CreateMatch(ctx context.Context, user1ID, user2ID uint) (*Match, error)
+	CreateMatchWithTx(ctx context.Context, tx database.DBTX, user1ID, user2ID uint) (*Match, error)
 	GetMatch(ctx context.Context, user1ID, user2ID uint) (*Match, error)
 }
 

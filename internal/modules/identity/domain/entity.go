@@ -3,6 +3,8 @@ package domain
 import (
 	"context"
 	"time"
+
+	"kopelko-dating-app-backend/internal/platform/database"
 )
 
 type User struct {
@@ -17,6 +19,7 @@ type User struct {
 
 type UserRepository interface {
 	Create(ctx context.Context, user *User) error
+	CreateWithTx(ctx context.Context, tx database.DBTX, user *User) error
 	GetByEmail(ctx context.Context, email string) (*User, error)
 	GetByID(ctx context.Context, id uint) (*User, error)
 	SetVerified(ctx context.Context, id uint, isVerified bool) error

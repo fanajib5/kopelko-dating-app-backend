@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: dating_app_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-dating_app}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./databases/migrations/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./databases/seeders/seeder.sql:/docker-entrypoint-initdb.d/02-seeder.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dating_app_api
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${API_PORT:-8080}:8080"
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      API_PORT: 8080
+      DATABASE_URL: postgres://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-dating_app}?sslmode=disable
+      JWT_SECRET: ${JWT_SECRET:-super_secret_jwt_key_32_chars_long!}
+      LIMIT_SWIPE: ${LIMIT_SWIPE:-10}
+
+volumes:
+  pgdata:

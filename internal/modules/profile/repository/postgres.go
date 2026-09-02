@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"kopelko-dating-app-backend/internal/modules/profile/domain"
+	"kopelko-dating-app-backend/internal/platform/database"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -21,6 +22,10 @@ func NewProfileRepository(db *pgxpool.Pool) domain.ProfileRepository {
 }
 
 func (r *profilePostgresRepo) Create(ctx context.Context, p *domain.Profile) error {
+	return r.CreateWithTx(ctx, r.db, p)
+}
+
+func (r *profilePostgresRepo) CreateWithTx(ctx context.Context, tx database.DBTX, p *domain.Profile) error {
 	query := `
 		INSERT INTO profiles (user_id, name, age, bio, gender, location, interests, photos, is_premium, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
@@ -30,7 +35,7 @@ func (r *profilePostgresRepo) Create(ctx context.Context, p *domain.Profile) err
 	p.CreatedAt = now
 	p.UpdatedAt = now
 
-	err := r.db.QueryRow(ctx, query,
+	err := tx.QueryRow(ctx, query,
 		p.UserID, p.Name, p.Age, p.Bio, p.Gender, p.Location, p.Interests, p.Photos, p.IsPremium, p.CreatedAt, p.UpdatedAt,
 	).Scan(&p.ID)
 
@@ -80,13 +85,17 @@ func (r *profilePostgresRepo) Update(ctx context.Context, p *domain.Profile) err
 }
 
 func (r *profilePostgresRepo) RecordView(ctx context.Context, userID, viewedUserID uint, swipeID *uint) error {
+	return r.RecordViewWithTx(ctx, r.db, userID, viewedUserID, swipeID)
+}
+
+func (r *profilePostgresRepo) RecordViewWithTx(ctx context.Context, tx database.DBTX, userID, viewedUserID uint, swipeID *uint) error {
 	query := `
 		INSERT INTO profile_views (user_id, viewed_user_id, swipe_id, view_date, created_at, updated_at)
 		VALUES ($1, $2, $3, CURRENT_DATE, $4, $4)
 		ON CONFLICT (user_id, viewed_user_id, view_date) DO NOTHING
 	`
 	now := time.Now()
-	_, err := r.db.Exec(ctx, query, userID, viewedUserID, swipeID, now)
+	_, err := tx.Exec(ctx, query, userID, viewedUserID, swipeID, now)
 	if err != nil {
 		return fmt.Errorf("failed to record profile view: %w", err)
 	}

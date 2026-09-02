@@ -1,13 +1,7 @@
 package main
 
 import (
-	"context"
 	"log"
-	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 
 	identityHttp "kopelko-dating-app-backend/internal/modules/identity/delivery/http"
 	identityRepo "kopelko-dating-app-backend/internal/modules/identity/repository"
@@ -30,6 +24,13 @@ import (
 	"kopelko-dating-app-backend/internal/platform/middleware"
 	"kopelko-dating-app-backend/internal/platform/token"
 
+	"context"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
 	"github.com/labstack/echo/v4"
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
 )
@@ -40,7 +41,7 @@ func main() {
 	// 1. Config
 	cfg := config.Load()
 
-	// 2. Database Connection (pgxpool)
+	// 2. Database Connection & Transactor
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -49,6 +50,8 @@ func main() {
 		log.Fatalf("Database initialization failed: %v", err)
 	}
 	defer dbPool.Close()
+
+	transactor := database.NewTransactor(dbPool)
 
 	// 3. Platform Services & Middleware
 	tokenSvc := token.NewJWTService(cfg.JWTSecret)
@@ -64,8 +67,8 @@ func main() {
 	// 5. Usecases / Domain Services
 	subscriptionService := subscriptionUsecase.NewSubscriptionUsecase(subscriptionRepository)
 	profileService := profileUsecase.NewProfileUsecase(profileRepository, subscriptionService, cfg.LimitSwipe)
-	swipeService := swipeUsecase.NewSwipeUsecase(swipeRepository, subscriptionService, profileRepository, cfg.LimitSwipe)
-	identityService := identityUsecase.NewIdentityUsecase(userRepository, profileRepository, tokenSvc)
+	swipeService := swipeUsecase.NewSwipeUsecase(swipeRepository, subscriptionService, profileRepository, transactor, cfg.LimitSwipe)
+	identityService := identityUsecase.NewIdentityUsecase(userRepository, profileRepository, tokenSvc, transactor)
 
 	// 6. HTTP Handlers
 	identityHandler := identityHttp.NewIdentityHandler(identityService)

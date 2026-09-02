@@ -7,8 +7,10 @@ import (
 
 	"kopelko-dating-app-backend/internal/modules/identity/domain"
 	profileDomain "kopelko-dating-app-backend/internal/modules/profile/domain"
+	"kopelko-dating-app-backend/internal/platform/database"
 	"kopelko-dating-app-backend/internal/platform/token"
 
+	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -16,17 +18,20 @@ type identityUsecase struct {
 	userRepo    domain.UserRepository
 	profileRepo profileDomain.ProfileRepository
 	tokenSvc    token.TokenService
+	transactor  database.Transactor
 }
 
 func NewIdentityUsecase(
 	userRepo domain.UserRepository,
 	profileRepo profileDomain.ProfileRepository,
 	tokenSvc token.TokenService,
+	transactor database.Transactor,
 ) domain.IdentityService {
 	return &identityUsecase{
 		userRepo:    userRepo,
 		profileRepo: profileRepo,
 		tokenSvc:    tokenSvc,
+		transactor:  transactor,
 	}
 }
 
@@ -54,13 +59,7 @@ func (u *identityUsecase) Register(
 		IsVerified:   false,
 	}
 
-	if err := u.userRepo.Create(ctx, user); err != nil {
-		return nil, "", fmt.Errorf("failed to create user: %w", err)
-	}
-
-	// Create initial user profile
 	profile := &profileDomain.Profile{
-		UserID:    user.ID,
 		Name:      name,
 		Age:       age,
 		Bio:       "",
@@ -70,8 +69,33 @@ func (u *identityUsecase) Register(
 		Photos:    photos,
 		IsPremium: false,
 	}
-	if err := u.profileRepo.Create(ctx, profile); err != nil {
-		return nil, "", fmt.Errorf("failed to create profile for user: %w", err)
+
+	// Atomic registration transaction: create user + create profile
+	if u.transactor != nil {
+		err = u.transactor.WithinTransaction(ctx, func(tx pgx.Tx) error {
+			if err := u.userRepo.CreateWithTx(ctx, tx, user); err != nil {
+				return fmt.Errorf("failed to create user: %w", err)
+			}
+
+			profile.UserID = user.ID
+			if err := u.profileRepo.CreateWithTx(ctx, tx, profile); err != nil {
+				return fmt.Errorf("failed to create profile: %w", err)
+			}
+			return nil
+		})
+	} else {
+		// Fallback without transactor (e.g. in tests with plain mocks)
+		if err := u.userRepo.Create(ctx, user); err != nil {
+			return nil, "", fmt.Errorf("failed to create user: %w", err)
+		}
+		profile.UserID = user.ID
+		if err := u.profileRepo.Create(ctx, profile); err != nil {
+			return nil, "", fmt.Errorf("failed to create profile: %w", err)
+		}
+	}
+
+	if err != nil {
+		return nil, "", err
 	}
 
 	tokenStr, err := u.tokenSvc.GenerateToken(user.ID, user.Email)

@@ -1,0 +1,27 @@
+.PHONY: run build test coverage docker-up docker-down lint clean
+
+# Default variables
+APP_NAME=dating-app
+
+run:
+	go run cmd/api/main.go
+
+build:
+	go build -o bin/$(APP_NAME) cmd/api/main.go
+
+test:
+	go test -v -race ./internal/...
+
+test-cover:
+	go test -v -cover -coverprofile=coverage.out ./internal/...
+	go tool cover -html=coverage.out -o coverage.html
+	@echo "Coverage report generated at coverage.html"
+
+docker-up:
+	docker compose up -d --build
+
+docker-down:
+	docker compose down
+
+clean:
+	rm -rf bin coverage.out coverage.html

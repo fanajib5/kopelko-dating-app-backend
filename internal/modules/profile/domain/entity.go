@@ -3,6 +3,8 @@ package domain
 import (
 	"context"
 	"time"
+
+	"kopelko-dating-app-backend/internal/platform/database"
 )
 
 type Gender string
@@ -39,9 +41,11 @@ type ProfileView struct {
 
 type ProfileRepository interface {
 	Create(ctx context.Context, profile *Profile) error
+	CreateWithTx(ctx context.Context, tx database.DBTX, profile *Profile) error
 	GetByUserID(ctx context.Context, userID uint) (*Profile, error)
 	Update(ctx context.Context, profile *Profile) error
 	RecordView(ctx context.Context, userID, viewedUserID uint, swipeID *uint) error
+	RecordViewWithTx(ctx context.Context, tx database.DBTX, userID, viewedUserID uint, swipeID *uint) error
 	GetDailyViewCount(ctx context.Context, userID uint) (int, error)
 	GetRandomProfiles(ctx context.Context, currentUserID uint, limit int) ([]Profile, error)
 }

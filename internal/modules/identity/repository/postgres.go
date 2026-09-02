@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"kopelko-dating-app-backend/internal/modules/identity/domain"
+	"kopelko-dating-app-backend/internal/platform/database"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -21,6 +22,10 @@ func NewUserRepository(db *pgxpool.Pool) domain.UserRepository {
 }
 
 func (r *userPostgresRepo) Create(ctx context.Context, u *domain.User) error {
+	return r.CreateWithTx(ctx, r.db, u)
+}
+
+func (r *userPostgresRepo) CreateWithTx(ctx context.Context, tx database.DBTX, u *domain.User) error {
 	query := `
 		INSERT INTO users (email, password_hash, is_verified, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5)
@@ -30,7 +35,7 @@ func (r *userPostgresRepo) Create(ctx context.Context, u *domain.User) error {
 	u.CreatedAt = now
 	u.UpdatedAt = now
 
-	err := r.db.QueryRow(ctx, query, u.Email, u.PasswordHash, u.IsVerified, u.CreatedAt, u.UpdatedAt).Scan(&u.ID)
+	err := tx.QueryRow(ctx, query, u.Email, u.PasswordHash, u.IsVerified, u.CreatedAt, u.UpdatedAt).Scan(&u.ID)
 	if err != nil {
 		return fmt.Errorf("failed to insert user: %w", err)
 	}
