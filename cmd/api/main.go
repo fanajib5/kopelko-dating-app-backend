@@ -1,7 +1,15 @@
 package main
 
 import (
-	"log"
+	"context"
+	"flag"
+	"fmt"
+	"log/slog"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	identityHttp "kopelko-dating-app-backend/internal/modules/identity/delivery/http"
 	identityRepo "kopelko-dating-app-backend/internal/modules/identity/repository"
@@ -19,27 +27,37 @@ import (
 	swipeRepo "kopelko-dating-app-backend/internal/modules/swipe/repository"
 	swipeUsecase "kopelko-dating-app-backend/internal/modules/swipe/usecase"
 
+	_ "kopelko-dating-app-backend/docs"
 	"kopelko-dating-app-backend/internal/platform/config"
 	"kopelko-dating-app-backend/internal/platform/database"
+	pkgLogger "kopelko-dating-app-backend/internal/platform/logger"
 	"kopelko-dating-app-backend/internal/platform/middleware"
+	"kopelko-dating-app-backend/internal/platform/migrator"
 	"kopelko-dating-app-backend/internal/platform/token"
-
-	"context"
-	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 
 	"github.com/labstack/echo/v4"
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
+// @title Kopelko Dating App API
+// @version 1.0
+// @description Modular Monolith Dating App Backend REST API built with Echo & pgx
+// @host localhost:8080
+// @BasePath /
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
 func main() {
-	log.Println("Starting dating app backend modular monolith...")
+	migrateFlag := flag.Bool("migrate", false, "Run database migrations")
+	seedFlag := flag.Bool("seed", false, "Run database seeders")
+	flag.Parse()
 
-	// 1. Config
+	// 1. Config & Structured Logger
 	cfg := config.Load()
+	pkgLogger.Init(cfg.AppEnv)
+	slog.Info("Starting dating app backend modular monolith...", "env", cfg.AppEnv, "port", cfg.APIPort)
 
 	// 2. Database Connection & Transactor
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -47,9 +65,31 @@ func main() {
 
 	dbPool, err := database.NewPostgresPool(ctx, cfg.DatabaseURL)
 	if err != nil {
-		log.Fatalf("Database initialization failed: %v", err)
+		slog.Error("Database connection pool failed", "error", err)
+		os.Exit(1)
 	}
 	defer dbPool.Close()
+
+	// Run CLI Migrations / Seeders if flagged
+	if *migrateFlag {
+		if err := migrator.RunMigration(context.Background(), dbPool, "databases/migrations/schema.sql"); err != nil {
+			slog.Error("Migration failed", "error", err)
+			os.Exit(1)
+		}
+		if !*seedFlag {
+			slog.Info("Migration completed successfully")
+			return
+		}
+	}
+
+	if *seedFlag {
+		if err := migrator.RunSeeder(context.Background(), dbPool, "databases/seeders/seeder.sql"); err != nil {
+			slog.Error("Seeding failed", "error", err)
+			os.Exit(1)
+		}
+		slog.Info("Seeding completed successfully")
+		return
+	}
 
 	transactor := database.NewTransactor(dbPool)
 
@@ -81,8 +121,11 @@ func main() {
 	e.HideBanner = true
 	e.Validator = customValidator
 	e.Use(echoMiddleware.CORS())
-	e.Use(echoMiddleware.Logger())
 	e.Use(echoMiddleware.Recover())
+	e.Use(middleware.RequestIDAndLoggingMiddleware())
+
+	// Swagger documentation UI
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	// Health check
 	e.GET("/health", func(c echo.Context) error {
@@ -100,10 +143,11 @@ func main() {
 
 	// 8. Graceful Server Startup & Shutdown
 	go func() {
-		addr := ":" + cfg.APIPort
-		log.Printf("Server listening on %s", addr)
+		addr := fmt.Sprintf(":%s", cfg.APIPort)
+		slog.Info("HTTP Server listening", "address", addr, "swagger", fmt.Sprintf("http://localhost:%s/swagger/index.html", cfg.APIPort))
 		if err := e.Start(addr); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Server shutdown error: %v", err)
+			slog.Error("Server encountered fatal error", "error", err)
+			os.Exit(1)
 		}
 	}()
 
@@ -111,13 +155,14 @@ func main() {
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	<-quit
 
-	log.Println("Shutting down server gracefully...")
+	slog.Info("Shutting down server gracefully...")
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer shutdownCancel()
 
 	if err := e.Shutdown(shutdownCtx); err != nil {
-		log.Fatalf("Server forced to shutdown: %v", err)
+		slog.Error("Server forced to shutdown", "error", err)
+		os.Exit(1)
 	}
 
-	log.Println("Server exited cleanly")
+	slog.Info("Server exited cleanly")
 }

@@ -1,6 +1,5 @@
-.PHONY: run build test coverage docker-up docker-down lint clean
+.PHONY: run build test test-cover docker-up docker-down migrate seed swagger clean
 
-# Default variables
 APP_NAME=dating-app
 
 run:
@@ -17,6 +16,15 @@ test-cover:
 	go tool cover -html=coverage.out -o coverage.html
 	@echo "Coverage report generated at coverage.html"
 
+migrate:
+	go run cmd/api/main.go -migrate
+
+seed:
+	go run cmd/api/main.go -seed
+
+swagger:
+	~/go/bin/swag init -g main.go
+
 docker-up:
 	docker compose up -d --build
 
@@ -24,4 +32,4 @@ docker-down:
 	docker compose down
 
 clean:
-	rm -rf bin coverage.out coverage.html
+	rm -rf bin coverage.out coverage.html docs

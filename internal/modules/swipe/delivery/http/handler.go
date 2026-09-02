@@ -20,9 +20,22 @@ func NewSwipeHandler(svc domain.SwipeService) *SwipeHandler {
 }
 
 type SwipeRequest struct {
-	SwipeType string `json:"swipe_type" validate:"required,oneof=like pass"`
+	SwipeType string `json:"swipe_type" validate:"required,oneof=like pass" example:"like"`
 }
 
+// Swipe godoc
+// @Summary Swipe a candidate user profile
+// @Description Record swipe decision (like or pass). If mutual like occurs, returns match metadata. Limited to 10/day unless subscribed.
+// @Tags Swipes
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param target_user_id path int true "Target User ID to swipe on"
+// @Param request body SwipeRequest true "Swipe payload"
+// @Success 200 {object} pkgHttp.APIResponse{data=domain.SwipeResponse}
+// @Failure 400 {object} pkgHttp.APIResponse
+// @Failure 401 {object} pkgHttp.APIResponse
+// @Router /api/users/swipes/{target_user_id} [post]
 func (h *SwipeHandler) Swipe(c echo.Context) error {
 	userID, ok := middleware.GetCurrentUserID(c)
 	if !ok {

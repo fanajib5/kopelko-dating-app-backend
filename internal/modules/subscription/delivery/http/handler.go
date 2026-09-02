@@ -19,9 +19,21 @@ func NewSubscriptionHandler(svc domain.SubscriptionService) *SubscriptionHandler
 }
 
 type SubscribeRequest struct {
-	FeatureName string `json:"feature_name" validate:"required"`
+	FeatureName string `json:"feature_name" validate:"required" example:"no_swipe_quota"`
 }
 
+// Subscribe godoc
+// @Summary Subscribe to premium feature
+// @Description Purchase premium feature such as 'no_swipe_quota' or 'verified_label'
+// @Tags Subscriptions
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body SubscribeRequest true "Subscribe payload"
+// @Success 200 {object} pkgHttp.APIResponse{data=domain.Subscription}
+// @Failure 400 {object} pkgHttp.APIResponse
+// @Failure 401 {object} pkgHttp.APIResponse
+// @Router /api/users/subscriptions [post]
 func (h *SubscriptionHandler) Subscribe(c echo.Context) error {
 	userID, ok := middleware.GetCurrentUserID(c)
 	if !ok {

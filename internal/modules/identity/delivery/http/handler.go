@@ -18,19 +18,19 @@ func NewIdentityHandler(svc domain.IdentityService) *IdentityHandler {
 }
 
 type RegisterRequest struct {
-	Email     string   `json:"email" validate:"required,email"`
-	Password  string   `json:"password" validate:"required,min=6"`
-	Name      string   `json:"name" validate:"required"`
-	Age       int      `json:"age" validate:"required,gte=18"`
-	Gender    string   `json:"gender" validate:"required,oneof=male female other"`
-	Location  string   `json:"location" validate:"required"`
-	Interests []string `json:"interests" validate:"omitempty"`
-	Photos    []string `json:"photos" validate:"omitempty"`
+	Email     string   `json:"email" validate:"required,email" example:"user@example.com"`
+	Password  string   `json:"password" validate:"required,min=6" example:"secret123"`
+	Name      string   `json:"name" validate:"required" example:"John Doe"`
+	Age       int      `json:"age" validate:"required,gte=18" example:"25"`
+	Gender    string   `json:"gender" validate:"required,oneof=male female other" example:"male"`
+	Location  string   `json:"location" validate:"required" example:"Jakarta"`
+	Interests []string `json:"interests" validate:"omitempty" example:"coding,music"`
+	Photos    []string `json:"photos" validate:"omitempty" example:"https://picsum.photos/200"`
 }
 
 type LoginRequest struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
+	Email    string `json:"email" validate:"required,email" example:"user@example.com"`
+	Password string `json:"password" validate:"required" example:"secret123"`
 }
 
 type AuthResponse struct {
@@ -38,6 +38,16 @@ type AuthResponse struct {
 	Token string       `json:"token"`
 }
 
+// Register godoc
+// @Summary Register new user
+// @Description Register a new user and create their initial profile atomically
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body RegisterRequest true "Register payload"
+// @Success 201 {object} pkgHttp.APIResponse{data=AuthResponse}
+// @Failure 400 {object} pkgHttp.APIResponse
+// @Router /api/register [post]
 func (h *IdentityHandler) Register(c echo.Context) error {
 	var req RegisterRequest
 	if err := c.Bind(&req); err != nil {
@@ -64,6 +74,17 @@ func (h *IdentityHandler) Register(c echo.Context) error {
 	})
 }
 
+// Login godoc
+// @Summary Login user
+// @Description Authenticate user by email & password to obtain JWT token
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body LoginRequest true "Login payload"
+// @Success 200 {object} pkgHttp.APIResponse{data=AuthResponse}
+// @Failure 400 {object} pkgHttp.APIResponse
+// @Failure 401 {object} pkgHttp.APIResponse
+// @Router /api/login [post]
 func (h *IdentityHandler) Login(c echo.Context) error {
 	var req LoginRequest
 	if err := c.Bind(&req); err != nil {

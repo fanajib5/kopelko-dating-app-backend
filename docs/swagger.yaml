@@ -1,0 +1,435 @@
+basePath: /
+definitions:
+  domain.Gender:
+    enum:
+    - male
+    - female
+    - other
+    type: string
+    x-enum-varnames:
+    - GenderMale
+    - GenderFemale
+    - GenderOther
+  domain.Match:
+    properties:
+      id:
+        type: integer
+      matched_at:
+        type: string
+      user1_id:
+        type: integer
+      user2_id:
+        type: integer
+    type: object
+  domain.Profile:
+    properties:
+      age:
+        type: integer
+      bio:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      gender:
+        $ref: '#/definitions/domain.Gender'
+      id:
+        type: integer
+      interests:
+        items:
+          type: string
+        type: array
+      is_premium:
+        type: boolean
+      location:
+        type: string
+      name:
+        type: string
+      photos:
+        items:
+          type: string
+        type: array
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  domain.Subscription:
+    properties:
+      auto_renew:
+        type: boolean
+      end_date:
+        type: string
+      feature_id:
+        type: integer
+      id:
+        type: integer
+      start_date:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  domain.Swipe:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: integer
+      swipe_date:
+        type: string
+      swipe_type:
+        $ref: '#/definitions/domain.SwipeType'
+      target_user_id:
+        type: integer
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  domain.SwipeResponse:
+    properties:
+      is_match:
+        type: boolean
+      match:
+        $ref: '#/definitions/domain.Match'
+      swipe:
+        $ref: '#/definitions/domain.Swipe'
+    type: object
+  domain.SwipeType:
+    enum:
+    - pass
+    - like
+    type: string
+    x-enum-varnames:
+    - SwipePass
+    - SwipeLike
+  domain.User:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      is_verified:
+        type: boolean
+      updated_at:
+        type: string
+    type: object
+  http.APIResponse:
+    properties:
+      data: {}
+      error: {}
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+  http.AuthResponse:
+    properties:
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/domain.User'
+    type: object
+  http.LoginRequest:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      password:
+        example: secret123
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  http.RegisterRequest:
+    properties:
+      age:
+        example: 25
+        minimum: 18
+        type: integer
+      email:
+        example: user@example.com
+        type: string
+      gender:
+        enum:
+        - male
+        - female
+        - other
+        example: male
+        type: string
+      interests:
+        example:
+        - coding
+        - music
+        items:
+          type: string
+        type: array
+      location:
+        example: Jakarta
+        type: string
+      name:
+        example: John Doe
+        type: string
+      password:
+        example: secret123
+        minLength: 6
+        type: string
+      photos:
+        example:
+        - https://picsum.photos/200
+        items:
+          type: string
+        type: array
+    required:
+    - age
+    - email
+    - gender
+    - location
+    - name
+    - password
+    type: object
+  http.SubscribeRequest:
+    properties:
+      feature_name:
+        example: no_swipe_quota
+        type: string
+    required:
+    - feature_name
+    type: object
+  http.SwipeRequest:
+    properties:
+      swipe_type:
+        enum:
+        - like
+        - pass
+        example: like
+        type: string
+    required:
+    - swipe_type
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Modular Monolith Dating App Backend REST API built with Echo & pgx
+  title: Kopelko Dating App API
+  version: "1.0"
+paths:
+  /api/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user by email & password to obtain JWT token
+      parameters:
+      - description: Login payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/http.AuthResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.APIResponse'
+      summary: Login user
+      tags:
+      - Authentication
+  /api/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user and create their initial profile atomically
+      parameters:
+      - description: Register payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/http.AuthResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.APIResponse'
+      summary: Register new user
+      tags:
+      - Authentication
+  /api/users/profiles/me:
+    get:
+      description: Retrieve the profile of the current logged-in user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.Profile'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: View current authenticated user profile
+      tags:
+      - Profiles
+  /api/users/profiles/random:
+    get:
+      description: Fetch random candidate profiles that have not been viewed/swiped
+        today, respecting daily limits (10/day for non-premium)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/domain.Profile'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Discovery feed / Random Profiles
+      tags:
+      - Profiles
+  /api/users/subscriptions:
+    post:
+      consumes:
+      - application/json
+      description: Purchase premium feature such as 'no_swipe_quota' or 'verified_label'
+      parameters:
+      - description: Subscribe payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.SubscribeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.Subscription'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Subscribe to premium feature
+      tags:
+      - Subscriptions
+  /api/users/swipes/{target_user_id}:
+    post:
+      consumes:
+      - application/json
+      description: Record swipe decision (like or pass). If mutual like occurs, returns
+        match metadata. Limited to 10/day unless subscribed.
+      parameters:
+      - description: Target User ID to swipe on
+        in: path
+        name: target_user_id
+        required: true
+        type: integer
+      - description: Swipe payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.SwipeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.SwipeResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Swipe a candidate user profile
+      tags:
+      - Swipes
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
