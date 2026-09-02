@@ -11,29 +11,21 @@ import (
 	"syscall"
 	"time"
 
-	identityHttp "kopelko-dating-app-backend/internal/modules/identity/delivery/http"
-	identityRepo "kopelko-dating-app-backend/internal/modules/identity/repository"
-	identityUsecase "kopelko-dating-app-backend/internal/modules/identity/usecase"
-
-	profileHttp "kopelko-dating-app-backend/internal/modules/profile/delivery/http"
-	profileRepo "kopelko-dating-app-backend/internal/modules/profile/repository"
-	profileUsecase "kopelko-dating-app-backend/internal/modules/profile/usecase"
-
-	subscriptionHttp "kopelko-dating-app-backend/internal/modules/subscription/delivery/http"
-	subscriptionRepo "kopelko-dating-app-backend/internal/modules/subscription/repository"
-	subscriptionUsecase "kopelko-dating-app-backend/internal/modules/subscription/usecase"
-
-	swipeHttp "kopelko-dating-app-backend/internal/modules/swipe/delivery/http"
-	swipeRepo "kopelko-dating-app-backend/internal/modules/swipe/repository"
-	swipeUsecase "kopelko-dating-app-backend/internal/modules/swipe/usecase"
-
 	_ "kopelko-dating-app-backend/docs"
+	"kopelko-dating-app-backend/internal/core/hook"
+	identityHttp "kopelko-dating-app-backend/internal/core/identity/delivery/http"
+	identityRepo "kopelko-dating-app-backend/internal/core/identity/repository"
+	identityUsecase "kopelko-dating-app-backend/internal/core/identity/usecase"
+	"kopelko-dating-app-backend/internal/core/plugin"
 	"kopelko-dating-app-backend/internal/platform/config"
 	"kopelko-dating-app-backend/internal/platform/database"
 	pkgLogger "kopelko-dating-app-backend/internal/platform/logger"
 	"kopelko-dating-app-backend/internal/platform/middleware"
 	"kopelko-dating-app-backend/internal/platform/migrator"
 	"kopelko-dating-app-backend/internal/platform/token"
+	profilePlugin "kopelko-dating-app-backend/internal/plugins/profile"
+	subscriptionPlugin "kopelko-dating-app-backend/internal/plugins/subscription"
+	swipePlugin "kopelko-dating-app-backend/internal/plugins/swipe"
 
 	"github.com/labstack/echo/v4"
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
@@ -42,7 +34,7 @@ import (
 
 // @title Kopelko Dating App API
 // @version 1.0
-// @description Modular Monolith Dating App Backend REST API built with Echo & pgx
+// @description Modular Extensible Dating App Backend Platform (Core + WordPress-like Plugins & Hooks)
 // @host localhost:8080
 // @BasePath /
 // @securityDefinitions.apikey BearerAuth
@@ -57,7 +49,7 @@ func main() {
 	// 1. Config & Structured Logger
 	cfg := config.Load()
 	pkgLogger.Init(cfg.AppEnv)
-	slog.Info("Starting dating app backend modular monolith...", "env", cfg.AppEnv, "port", cfg.APIPort)
+	slog.Info("Starting Kopelko Platform Core...", "env", cfg.AppEnv, "port", cfg.APIPort)
 
 	// 2. Database Connection & Transactor
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -93,32 +85,43 @@ func main() {
 
 	transactor := database.NewTransactor(dbPool)
 
-	// 3. Platform Services & Middleware
+	// 3. Platform Services, Middleware & Hook Manager
+	hookManager := hook.NewHookManager()
 	tokenSvc := token.NewJWTService(cfg.JWTSecret)
 	customValidator := middleware.NewValidator()
 	authMiddleware := middleware.AuthMiddleware(tokenSvc)
 	securityHeadersMiddleware := middleware.SecurityHeadersMiddleware()
 	authRateLimiter := middleware.NewAuthRateLimiter(10, 1*time.Minute)
 
-	// 4. Repositories
+	// 4. Core Modules (Identity & Authentication)
 	userRepository := identityRepo.NewUserRepository(dbPool)
-	profileRepository := profileRepo.NewProfileRepository(dbPool)
-	subscriptionRepository := subscriptionRepo.NewSubscriptionRepository(dbPool)
-	swipeRepository := swipeRepo.NewSwipeRepository(dbPool)
-
-	// 5. Usecases / Domain Services
-	subscriptionService := subscriptionUsecase.NewSubscriptionUsecase(subscriptionRepository)
-	profileService := profileUsecase.NewProfileUsecase(profileRepository, subscriptionService, cfg.LimitSwipe)
-	swipeService := swipeUsecase.NewSwipeUsecase(swipeRepository, subscriptionService, profileRepository, transactor, cfg.LimitSwipe)
-	identityService := identityUsecase.NewIdentityUsecase(userRepository, profileRepository, tokenSvc, transactor)
-
-	// 6. HTTP Handlers
+	identityService := identityUsecase.NewIdentityUsecase(userRepository, tokenSvc, transactor, hookManager)
 	identityHandler := identityHttp.NewIdentityHandler(identityService)
-	profileHandler := profileHttp.NewProfileHandler(profileService)
-	subscriptionHandler := subscriptionHttp.NewSubscriptionHandler(subscriptionService)
-	swipeHandler := swipeHttp.NewSwipeHandler(swipeService)
 
-	// 7. Echo Router Setup
+	// 5. Plugin Architecture Setup
+	appCtx := &plugin.AppContext{
+		Context:    context.Background(),
+		DBPool:     dbPool,
+		Transactor: transactor,
+		Hooks:      hookManager,
+		Config:     cfg,
+		Logger:     slog.Default(),
+	}
+
+	pluginMgr := plugin.NewPluginManager(appCtx)
+
+	// Register Plugins (subscription, profile, swipe)
+	pluginMgr.Register(subscriptionPlugin.NewPlugin())
+	pluginMgr.Register(profilePlugin.NewPlugin())
+	pluginMgr.Register(swipePlugin.NewPlugin())
+
+	// Initialize all plugins & register hooks
+	if err := pluginMgr.InitAll(); err != nil {
+		slog.Error("Failed to initialize plugins", "error", err)
+		os.Exit(1)
+	}
+
+	// 6. Echo Router Setup
 	e := echo.New()
 	e.HideBanner = true
 	e.Validator = customValidator
@@ -159,17 +162,14 @@ func main() {
 
 	api := e.Group("/api")
 
-	// Public Auth Routes protected with rate limiter
+	// Core Auth Routes (protected with rate limiter)
 	authGroup := api.Group("", authRateLimiter)
 	identityHandler.RegisterRoutes(authGroup)
 
-	// Protected Routes
-	userGroup := api.Group("/users", authMiddleware)
-	profileHandler.RegisterRoutes(userGroup)
-	subscriptionHandler.RegisterRoutes(userGroup)
-	swipeHandler.RegisterRoutes(userGroup)
+	// Mount Plugin Routes
+	pluginMgr.RegisterAllRoutes(api, authMiddleware)
 
-	// 8. Graceful Server Startup & Shutdown
+	// 7. Graceful Server Startup & Shutdown
 	go func() {
 		addr := fmt.Sprintf(":%s", cfg.APIPort)
 		slog.Info("HTTP Server listening", "address", addr, "swagger", fmt.Sprintf("http://localhost:%s/swagger/index.html", cfg.APIPort))
