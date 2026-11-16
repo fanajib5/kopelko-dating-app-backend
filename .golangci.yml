@@ -1,5 +1,6 @@
+version: "2"
+
 run:
-  timeout: 5m
   tests: true
 
 linters:
@@ -12,19 +13,17 @@ linters:
     - revive
     - misspell
 
-linters-settings:
-  govet:
-    shadow: true
-  revive:
-    severity: warning
-  misspell:
-    locale: US
+  settings:
+    revive:
+      severity: warning
+    misspell:
+      locale: US
 
-issues:
-  exclude-dirs:
-    - docs
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - errcheck
-        - gosec
+  exclusions:
+    paths:
+      - docs
+    rules:
+      - path: _test\.go
+        linters:
+          - errcheck
+          - gosec

@@ -140,24 +140,24 @@ func (r *profilePostgresRepo) GetRandomProfiles(ctx context.Context, currentUser
 	argIdx := 2
 
 	if filter.Gender != nil && *filter.Gender != "" {
-		queryBuilder.WriteString(fmt.Sprintf(" AND p.gender = $%d", argIdx))
+		fmt.Fprintf(&queryBuilder, " AND p.gender = $%d", argIdx)
 		args = append(args, *filter.Gender)
 		argIdx++
 	}
 
 	if filter.MinAge != nil && *filter.MinAge > 0 {
-		queryBuilder.WriteString(fmt.Sprintf(" AND p.age >= $%d", argIdx))
+		fmt.Fprintf(&queryBuilder, " AND p.age >= $%d", argIdx)
 		args = append(args, *filter.MinAge)
 		argIdx++
 	}
 
 	if filter.MaxAge != nil && *filter.MaxAge > 0 {
-		queryBuilder.WriteString(fmt.Sprintf(" AND p.age <= $%d", argIdx))
+		fmt.Fprintf(&queryBuilder, " AND p.age <= $%d", argIdx)
 		args = append(args, *filter.MaxAge)
 		argIdx++
 	}
 
-	queryBuilder.WriteString(fmt.Sprintf(" ORDER BY RANDOM() LIMIT $%d", argIdx))
+	fmt.Fprintf(&queryBuilder, " ORDER BY RANDOM() LIMIT $%d", argIdx)
 	limit := filter.Limit
 	if limit <= 0 {
 		limit = 10
